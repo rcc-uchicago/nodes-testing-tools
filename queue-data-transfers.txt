@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# submit:
+#   sbatch --nodelist=midway3-0451 queue-cpu-nodes.txt
+
+#SBATCH --job-name=gpu-test
+#SBATCH --account=rcc-staff
+#SBATCH --partition=test
+##SBATCH --reservation=Test_CPP   # System team would put the node under this reservation for testing purposes, or CS can create it
+
+#SBATCH --mem=0
+#SBATCH --time=00:30:00
+#SBATCH --exclusive
+
+nodename=$SLURM_NODELIST
+
+OUTPUT="output-cpu-$nodename.txt"
+
+echo "Job ID: $SLURM_JOB_ID" > $OUTPUT
+echo "Nodes = $nodename" >> $OUTPUT
+echo "Job type: CPU-only" >> $OUTPUT
+echo "Date: `date`"
+
+cd $SLURM_SUBMIT_DIR
+CWD=`pwd`
+
+nodes=$SLURM_NNODES
+ppn=$SLURM_NTASKS_PER_NODE
+n=$(( ppn * nodes ))
+
+ulimit -l unlimited
+ulimit -s unlimited
+
+
+lscpu >> $OUTPUT
+lscpu --extended >> $OUTPUT
+
+cores=`grep "CPU(s):" $OUTPUT`
+cpu_start=`grep "CPU NODE SOCKET CORE" $OUTPUT`
+
+# Check the output of the last lscpu command if the first column (CPU) and the 4th column (CORE) are equal
+#    if CORE > CPU, then hardware threading is enabled
+
+awk -v cores="$cores" -v start="$cpu_start" 'BEGIN{hyperthreading=0;}{
+  if (NR > start && NR < start+cores) {
+    if ($1 != $4) hyperthreading=1;
+  }
+} END{ if (hyperthreading==1) printf("Hyperthreading is ON.");}' $OUTPUT
+
+
+# testing /home access
+echo "This is a test access to /home from the compute node" > $HOME/.testing.txt
+status=`grep "access" $HOME/.testing.txt`
+if [ -n "$status" ]
+then
+   echo "PASSED /home access" >> $OUTPUT
+else
+   echo "FAILED /home access" >> $OUTPUT
+fi
+rm $HOME/.testing.txt
+
+# testing /project access
+
+# testing global /scratch access
+rsync -avzh /project/rcc/shared/nodes-testing/gpu_stability/pytorch/data /scratch/midway3/$USER/.data-pytorch 2>&1 >> $OUTPUT
+rm -rf /scratch/midway3/$USER/.data-pytorch
+
+# testing local scatch /tmp access
+rsync -avzh /project/rcc/shared/nodes-testing/gpu_stability/pytorch/data /tmp/.data-pytorch > 2>&1 >> $OUTPUT
+rm -rf /tmp/.data-pytorch
+
+echo "Done" >> $OUTPUT
+
+cd $CWD
+

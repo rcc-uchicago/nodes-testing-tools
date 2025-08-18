@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# submit:
+#   sbatch --nodelist=midway3-0451 queue-cpu-nodes.txt
+
+#SBATCH --job-name=gpu-test
+#SBATCH --account=rcc-staff
+#SBATCH --partition=test
+##SBATCH --reservation=Test_CPP   # System team would put the node under this reservation for testing purposes, or CS can create it
+
+#SBATCH --mem=0
+#SBATCH --time=00:30:00
+#SBATCH --exclusive
+
+nodename=$SLURM_NODELIST
+
+OUTPUT="output-cpu-$nodename.txt"
+
+echo "Job ID: $SLURM_JOB_ID" > $OUTPUT
+echo "Nodes = $nodename" >> $OUTPUT
+echo "Job type: CPU-only" >> $OUTPUT
+echo "Date: `date`" >> $OUTPUT
+
+cd $SLURM_SUBMIT_DIR
+CWD=`pwd`
+
+nodes=$SLURM_NNODES
+ppn=$SLURM_NTASKS_PER_NODE
+n=$(( ppn * nodes ))
+
+ulimit -l unlimited
+ulimit -s unlimited
+
+
+lscpu >> $OUTPUT
+lscpu --extended >> $OUTPUT
+
+cores=`grep "CPU(s):" $OUTPUT`
+cpu_start=`grep "CPU NODE SOCKET CORE" $OUTPUT`
+
+# Check the output of the last lscpu command if the first column (CPU) and the 4th column (CORE) are equal
+#    if CORE > CPU, then hardware threading is enabled
+
+awk -v cores="$cores" -v start="$cpu_start" 'BEGIN{hyperthreading=0;}{
+  if (NR > start && NR < start+cores) {
+    if ($1 != $4) hyperthreading=1;
+  }
+} END{ if (hyperthreading==1) printf("Hyperthreading is ON.");}' $OUTPUT
+
+
+# LAMMPS is chosen because we can run with MPI on the whole node or across multiple nodes, 
+# and memory consumption can be tuned by the parameter r below
+
+# testing: 
+#  1) loading modules from /software
+#  2) accessing files from /project
+if grep -q "AMD" $OUTPUT; then
+  echo "$nodename has AMD CPUs" >> $OUTPUT
+   module load mpich/3.4.3+gcc-10.2.0 cuda/12.2
+   export PATH=/project/rcc/shared/nodes-testing/lammps/build:$PATH
+else
+  echo "$nodename has Intel CPUs" >> $OUTPUT
+  module load lammps/29Aug2024
+fi
+
+
+echo "Running $(which lmp) with $n procs"  >> $CWD/$OUTPUT
+
+cd /project/rcc/shared/nodes-testing/gpu_stability/lammps
+# r controls the problem size, that is, the number of atoms simulated, the higher r, the more RAM needed per proc
+r=8                 # 16 for 256 GB mem nodes, 24 for 1TB mem nodes, 35 for bigger mem nodes
+# t controls how long the simulation takes
+t=100
+
+mpirun -np $n -bind-to core -map-by numa lmp -in in.lj -v x $r -v y $r -v z $r -v t $t >> $CWD/$OUTPUT
+
+if [ -e $OUTPUT ]
+then
+  n=`grep "Loop time" $OUTPUT | wc -l`
+
+  if [ $n -eq 1 ]
+  then
+    echo "PASSED" >> $OUTPUT
+  else
+    echo "FAILED" >> $OUTPUT
+  fi
+else
+  echo "$OUTPUT does not exist" >> $OUTPUT
+fi
+
+echo "Done" >> $OUTPUT
+
+cd $CWD
+
