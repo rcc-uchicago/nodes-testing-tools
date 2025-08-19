@@ -8,22 +8,33 @@ Given a set of nodes in a partition, there are typical tests that need to be don
   * the GPUs are functional (as advertised)
   * the data transfers between the node(s) and storage spaces are at the expected rates
 
-The tests should be able to judge if the nodes meet the expectations.
+
+The tools serve the following 2 use cases:
+
+  * Manual testing: the CS/System team members specify the node(s) to test.
+    + the GUI app: `nodes-testing.py`
+    + the CLI tools: `test-cpu-nodes.sh` and `test-gpu-nodes.sh`
+  * Automated testing: the tool run in the background in the user space and automatically submits testing jobs
+    + the shell script: `requesting_tests.sh`
 
 The GUI tool `nodes-testing.py` is a Python script that runs through `streamlit` that
 allows users to select the job type and an associated job script to submit the nodes.
 The job script will run selected applications and print to an output log file. 
 
-Ideally, the job script should be responsible to the tell if the applications
-and shell commands therein complete successfully and/or reports the performance and
-accuracy of the run.
+The underlying job scripts `queue-cpu-nodes.txt` and `queue-gpu-nodes.txt` should be responsible
+to the tell if the applications and shell commands therein complete successfully and/or reports
+the performance and accuracy of the run.
 
-To-do:
+The shell script `requesting_tests.sh` is used for automated testing, which fills in the details
+in the job scripts.
+
+To-Do:
 
   * need to define a reference file for each test case: for example, with LAMMPS runs,
     the reference file lists the expected performance and numerical result of the last
     time step and the accepted tolerance.
-  * need to define a 
+  * more testing
+
 
 === Installation ====
 

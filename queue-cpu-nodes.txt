@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # submit:
-#   sbatch --nodelist=midway3-0451 queue-cpu-nodes.txt
+#   sbatch --nodelist=midway3-0451 queue-cpu-nodes.txt output-midway3-0451.txt
 
 #SBATCH --job-name=gpu-test
 #SBATCH --account=rcc-staff
 #SBATCH --partition=test
-##SBATCH --reservation=Test_CPP   # System team would put the node under this reservation for testing purposes, or CS can create it
+#SBATCH --reservation=Test_CPP   # System team would put the node under this reservation for testing purposes, or CS can create it
+
+#SBATCH --ntasks-per-node=32
+
 
 #SBATCH --mem=0
 #SBATCH --time=00:30:00
@@ -14,7 +17,7 @@
 
 nodename=$SLURM_NODELIST
 
-OUTPUT="output-cpu-$nodename.txt"
+OUTPUT="$1"
 
 echo "Job ID: $SLURM_JOB_ID" > $OUTPUT
 echo "Nodes = $nodename" >> $OUTPUT
@@ -47,13 +50,13 @@ awk -v cores="$cores" -v start="$cpu_start" 'BEGIN{hyperthreading=0;}{
   }
 } END{ if (hyperthreading==1) printf("Hyperthreading is ON.");}' $OUTPUT
 
-
 # LAMMPS is chosen because we can run with MPI on the whole node or across multiple nodes, 
 # and memory consumption can be tuned by the parameter r below
 
 # testing: 
 #  1) loading modules from /software
 #  2) accessing files from /project
+
 if grep -q "AMD" $OUTPUT; then
   echo "$nodename has AMD CPUs" >> $OUTPUT
    module load mpich/3.4.3+gcc-10.2.0 cuda/12.2
@@ -63,32 +66,33 @@ else
   module load lammps/29Aug2024
 fi
 
+echo "Running $(which lmp) with $n procs"  >> $OUTPUT
 
-echo "Running $(which lmp) with $n procs"  >> $CWD/$OUTPUT
-
-cd /project/rcc/shared/nodes-testing/gpu_stability/lammps
+export DATA_PATH=/project/rcc/shared/nodes-testing/gpu_stability/lammps
 # r controls the problem size, that is, the number of atoms simulated, the higher r, the more RAM needed per proc
 r=8                 # 16 for 256 GB mem nodes, 24 for 1TB mem nodes, 35 for bigger mem nodes
 # t controls how long the simulation takes
 t=100
 
-mpirun -np $n -bind-to core -map-by numa lmp -in in.lj -v x $r -v y $r -v z $r -v t $t >> $CWD/$OUTPUT
+mpirun -np $n -bind-to core -map-by numa lmp -in $DATA_PATH/in.lj -v x $r -v y $r -v z $r -v t $t >> $CWD/$OUTPUT
 
-if [ -e $OUTPUT ]
+if [ -e "$CWD/$OUTPUT" ]
 then
-  n=`grep "Loop time" $OUTPUT | wc -l`
+  n=`grep "Loop time" $CWD/$OUTPUT | wc -l`
 
   if [ $n -eq 1 ]
   then
-    echo "PASSED" >> $OUTPUT
+    echo "PASSED" >> $CWD/$OUTPUT
   else
-    echo "FAILED" >> $OUTPUT
+    echo "FAILED" >> $CWD/$OUTPUT
   fi
 else
-  echo "$OUTPUT does not exist" >> $OUTPUT
+  echo "$OUTPUT does not exist." >> $CWD/$OUTPUT
 fi
 
-echo "Done" >> $OUTPUT
+echo "Done. Finished ALL tests." >> $CWD/$OUTPUT
+timestamp=`date`
+echo "Last update: $timestamp"
 
 cd $CWD
 
