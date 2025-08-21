@@ -250,7 +250,10 @@ if __name__ == "__main__":
 
         account = st.selectbox(r"$\textsf{\large Account}$", accounts_avail, help='Accounts accessible',index=index)
         partition = st.selectbox(r"$\textsf{\large Partition}$", ("test", "caslake", "gpu"), help='Partitions used for testing',index=0)
-        reservation = st.selectbox(r"$\textsf{\large Reservation}$", ("Test_CPP", "None"), help='Reservation, usually Test_CPP already created by System or CS',index=0)
+        #reservation = st.selectbox(r"$\textsf{\large Reservation}$", ("Test_CPP", "None"), help='Reservation, usually Test_CPP already created by System or CS',index=0)
+        
+        reservation = st.text_input(r"$\textsf{\large Reservation}$", f"Test_CPP",
+                                 help='Reservation, usually Test_CPP already created by System or CS',)
 
         nnodes = st.text_input(r"$\textsf{\large Number of nodes}$", "1")
         nodelist = st.text_input(r"$\textsf{\large List of nodes}$", "", help='Specify a list of target nodes in the reservation to test')
@@ -344,8 +347,9 @@ if __name__ == "__main__":
       else:
          sbatch_header += f"#SBATCH --ntasks-per-node={ntasks_per_node}\n"
          sbatch_header += f"#SBATCH --cpus-per-task={cpus_per_task}\n"
-      if reservation != "None":
-         sbatch_header += f"#SBATCH --reservation={reservation}"
+      if len(reservation) > 0:
+         if reservation != "None":
+             sbatch_header += f"#SBATCH --reservation={reservation}"
 
       constraint_list = []
       constraint =  gputype
@@ -353,8 +357,8 @@ if __name__ == "__main__":
       
       if job_type == "GPU jobs":
           if int(gpus) > 0:
-              sbatch_header += f"#SBATCH --gres=gpu:{gpus}\n"
-              sbatch_header += f"#SBATCH --constraint={gputype}"
+             sbatch_header += f"#SBATCH --gres=gpu:{gpus}\n"
+             sbatch_header += f"#SBATCH --constraint={gputype}"
 
 
       job_script_header.code(sbatch_header, language='c++')
