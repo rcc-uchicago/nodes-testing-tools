@@ -17,6 +17,9 @@ import subprocess
 from streamlit_autorefresh import st_autorefresh
 
 class JobDescriptor:
+    '''
+    JobDescriptor gathers the information from params, a dictionary with information from the GUI.
+    '''
     def __init__(self, params):
         self.sbatch_header = params['sbatch_header']
         self.job_name = params['job_name']
@@ -37,6 +40,12 @@ class JobDescriptor:
         self.work_dir = params['work_dir']
     
     def generate_job_script(self):
+        '''
+        generate a batch job script
+           - the header #SBATCH section  depending on the job type and arguments
+           - the execution section is taken from the job script template
+        return the job script file name
+        '''
         if len(self.constraint_list) == 0:
             return
 
@@ -64,6 +73,9 @@ class JobDescriptor:
         return job_script_name
 
     def submitJob(self):
+        '''
+        submit the job script to Slurm
+        '''
         job_script_name = self.generate_job_script()
 
         if self.execution == "":
@@ -115,6 +127,12 @@ def get_jobs():
     return jobs
 
 def extract_app_output_log(application_filter: str, output_str: str):
+    '''
+    extract the output log to just if the test is passed
+    To-do:
+      - load in the yaml file with entries like: 'LAMMPS' and 'NeuralNetwork' with the expected output values
+      - check if the test output is consistent with the expected output
+    '''
     info = {}
     info['passed'] = True
     info['notes'] = ""
@@ -145,6 +163,11 @@ def extract_app_output_log(application_filter: str, output_str: str):
         
 
 def check_result(testing_output: str, reference=None):
+    '''
+    check testing output against reference
+      - high-level should have "PASSED" and "Done"
+      - low-level
+    '''
     passed = True
     notes = ""
     if "PASSED" in testing_output and "Done" in testing_output:
@@ -343,7 +366,7 @@ if __name__ == "__main__":
       if nodelist != "":
          sbatch_header += f"#SBATCH --nodelist={nodelist}"
       if exclusive:
-         sbatch_header += f"#SBATCH --exclusive"
+         sbatch_header += f"#SBATCH --exclusive\n"
       else:
          sbatch_header += f"#SBATCH --ntasks-per-node={ntasks_per_node}\n"
          sbatch_header += f"#SBATCH --cpus-per-task={cpus_per_task}\n"
