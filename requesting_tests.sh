@@ -45,6 +45,7 @@ while true; do
         scontrol show node $nodelist > node_info.txt
         real_mem=`grep RealMemory node_info.txt | awk '{print $1}'| sed 's/RealMemory=//g'`
         max_ppn=`grep CPUTot node_info.txt | awk '{print $2}'| sed 's/CPUTot=//g'`
+        threads_per_node=`grep ThreadsPerCore node_info.txt | awk '{print $2}'| sed 's/ThreadsPerCore=//g'`
         has_gpu=`grep "gpu:" node_info.txt`
         gpu_nodes=0
         gres=""
@@ -108,7 +109,6 @@ while true; do
 
             # modify the job script
             sed -i "s/--reservation=Test_CPP/--reservation=$reservation/g" $job_script
-            sed -i "s/--ntasks-per-node=32/--ntasks-per-node=$max_ppn/g" $job_script
 
             echo "Submitting job script $job_script.."
 

@@ -1,4 +1,8 @@
 # This streamlit script allows users/testers to submit testing jobs to selected compute nodes
+# (need to install 2 packakges into the active env:  pip install streamlit streamlit_autorefresh)
+#
+#    streamlit run nodes-testing.py
+#
 # Contact: ndtrung@uchicago.edu
 
 from datetime import datetime
@@ -315,13 +319,6 @@ if __name__ == "__main__":
         else:
             module = ""
         
-        #timing_compute_script = ""
-        #timing_compute_file = st.file_uploader(r"$\textsf{\large Specify the post-processing script to compute the job timing}$",
-        #                                 help='The script that measure timings of the job (optional).',
-        #                                 accept_multiple_files=False)
-        #if timing_compute_file is not None:
-        #    timing_compute_script = timing_compute_file.name
-
 
     with col2:
       

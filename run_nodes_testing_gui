@@ -1,0 +1,5 @@
+#!/bin/sh
+
+#module load python/miniforge-25.3.0
+source /project/rcc/shared/nodes-testing/testing-env/bin/activate
+streamlit run /project/rcc/shared/nodes-testing/node-testing-tool/nodes-testing.py
