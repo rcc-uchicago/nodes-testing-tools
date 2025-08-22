@@ -50,16 +50,28 @@ class JobDescriptor:
             return
 
         job_script_name = "queue.txt"
+        self.sjobtype = "cpu"
+
+        if len(self.nodelist) == 0:
+            cmd = f"scontrol show res {self.reservation} | grep Nodes"
+            cmd += "| awk '{ print $1 }' | sed 's/Nodes=//g' "
+            p = subprocess.run(cmd, shell=True, text=True, capture_output=True)
+            self.nodelist = p.stdout
+
         for constraint in self.constraint_list:
             
             if self.job_type == "CPU-only jobs":
                 job_script_name = f"queue-cpu.txt"
+                self.sjobtype = "cpu"
             elif self.job_type == "High-memory CPU-only jobs":
-                job_script_name = f"queue-hmem-cpu.txt"    
+                job_script_name = f"queue-hmem-cpu.txt"
+                self.sjobtype = "hmem-cpu"
             elif self.job_type == "GPU jobs":
                 job_script_name = f"queue-gpu-{constraint}.txt"
+                self.sjobtype = "gpu"
             elif self.job_type == "Custom":
                 job_script_name = f"queue-custom.txt"
+                self.sjobtype = "custom"
 
             with open(job_script_name, "w") as f:
                 f.write(f"#!/bin/bash -l\n")
@@ -83,7 +95,8 @@ class JobDescriptor:
             submitted = False
         else:
             for constraint in self.constraint_list:
-                cmd = f"sbatch {job_script_name}"
+                output=f"output-{self.sjobtype}-{self.nodelist}.txt"
+                cmd = f"sbatch {job_script_name} {output}"
                 p = subprocess.run(cmd, shell=True, text=True, capture_output=True)
 
             st.success('Your jobs have been submitted!')
@@ -408,6 +421,7 @@ if __name__ == "__main__":
 
       jobdescriptor = JobDescriptor(params)
 
+      # need to check if resesevation is still valid
 
       if st.button('Submit', type='primary', on_click=jobdescriptor.submitJob):
           st.markdown("#### Job status")
