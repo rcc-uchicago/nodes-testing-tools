@@ -13,6 +13,12 @@ import pandas as pd
 import streamlit as st
 from io import StringIO
 
+import yaml
+try:
+    from yaml import CSafeLoader as Loader
+except ImportError:
+    from yaml import SafeLoader as Loader
+
 import subprocess
 from streamlit_autorefresh import st_autorefresh
 

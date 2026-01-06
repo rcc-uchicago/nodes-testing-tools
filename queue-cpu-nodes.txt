@@ -27,8 +27,16 @@ echo "Date: `date`" >> $OUTPUT
 cd $SLURM_SUBMIT_DIR
 CWD=`pwd`
 
+max_ppn=`scontrol show node $nodelist | grep CPUTot | awk '{print $2}'| sed 's/CPUTot=//g'`
+
 nodes=$SLURM_NNODES
-ppn=$SLURM_NTASKS_PER_NODE
+if [ -n "$SLURM_NTASKS_PER_NODE" ]
+then
+   ppn=$SLURM_NTASKS_PER_NODE
+else
+   ppn=$max_ppn
+fi
+
 n=$(( ppn * nodes ))
 
 ulimit -l unlimited

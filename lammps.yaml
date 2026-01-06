@@ -1,0 +1,18 @@
+---
+  app_binary: "lmp"
+  modules_needed: "lammps/29Aug2024"
+  nprocs: "4"
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "-np"
+  args: "-in /project/rcc/shared/nodes-testing/lammps/bench/in.lj -cite none"
+  extract_output_script: "./lammps_extract_output.sh"
+  expected:
+    TotEng:
+      value: -4.6223113
+      absdiff: 1.0e-3 
+    TPS:
+      value: 208
+      absdiff: 1.0
+
+
+
