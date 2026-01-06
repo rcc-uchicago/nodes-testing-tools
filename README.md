@@ -1,4 +1,4 @@
-This project contains tools to test compute nodes before delivery and after maintenance.
+This project contains tools to test compute nodes before delivery of CPP nodes and new clusters and after maintenance. This is important for both CS and System teams to ensure the continuously high quality of service.
 
 Given a set of nodes in a partition, there are typical tests that need to be done
 
