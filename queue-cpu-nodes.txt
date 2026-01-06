@@ -15,12 +15,12 @@
 #SBATCH --time=00:30:00
 #SBATCH --exclusive
 
-nodename=$SLURM_NODELIST
+nodelist=$SLURM_NODELIST
 
 OUTPUT="$1"
 
 echo "Job ID: $SLURM_JOB_ID" > $OUTPUT
-echo "Nodes = $nodename" >> $OUTPUT
+echo "Nodes = $nodelist" >> $OUTPUT
 echo "Job type: CPU-only" >> $OUTPUT
 echo "Date: `date`" >> $OUTPUT
 
@@ -36,7 +36,6 @@ then
 else
    ppn=$max_ppn
 fi
-
 n=$(( ppn * nodes ))
 
 ulimit -l unlimited
