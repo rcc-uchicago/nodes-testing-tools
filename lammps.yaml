@@ -9,10 +9,10 @@
   expected:
     TotEng:
       value: -4.6223113
-      absdiff: 1.0e-3 
+      abstol: 1.0e-3
     TPS:
       value: 208
-      absdiff: 1.0
+      reltol: 10.0
 
 
 

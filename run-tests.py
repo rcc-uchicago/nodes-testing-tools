@@ -105,10 +105,46 @@ if __name__ == "__main__":
     with open(configFileName, 'r') as f:
         config = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
-        logging.info(f"\nUsing the configuration file:\n  {absolute_path}")
+        logging.info(f"Using the configuration file:\n  {absolute_path}")
         f.close()
 
+    # Execute the pipeline in the configuration file
     status = execute(config)
-    logging.info(f"Ouput: {status['output_results']}")
-    logging.info(f"Expected: {config['expected']}")
+    #logging.info(f"Ouput: {status['output_results']}")
+    #logging.info(f"Expected: {config['expected']}")
+
+    passed = True
+    failed_quantities = []
+    for quantity in config['expected']:
+        if quantity not in status['output_results']:
+            logging.info(f"{quantity} is missing in the output")
+            logging.info("Failed")
+            break
+        
+        expected_value = config['expected'][quantity]['value']
+        actual_value = status['output_results'][quantity]['value']
+        absdiff = np.abs(np.float64(expected_value) - np.float64(actual_value))
+        reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
+
+        if 'abstol' in config['expected'][quantity]:
+            abstol = np.float64(config['expected'][quantity]['abstol'])
+            logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} absdiff = {absdiff:.5f} abstol = {abstol}")
+            if absdiff > abstol:
+                passed = False
+                failed_quantities.append(quantity)
+
+        if 'reltol' in config['expected'][quantity]:
+            reltol = np.float64(config['expected'][quantity]['reltol'])
+            logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} reldiff = {reldiff:.3f} reltol = {reltol}")
+            if reldiff > reltol:
+                passed = False
+                failed_quantities.append(quantity)
+
+    if passed == True:
+        logging.info(f"PASSED")
+    else:
+        logging.info(f"FAILED for the following output: {failed_quantities}")
+        
+
+
 
