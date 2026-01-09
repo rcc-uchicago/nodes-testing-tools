@@ -77,7 +77,8 @@ defined by a configuration file:
 python run-tests.py --config-file lammps.yaml
 ```
 
-The configuration file `lammps.yaml` specifies the application executable to run and the expected output (e.g. numerical accuracy and performance and tolerances). Similar configuration files can be created for other applications such as HPCG and HPCC.
+The configuration file `lammps.yaml` specifies the application executable to run and the expected output (e.g. numerical accuracy and performance and tolerances).
+Similar configuration files can be created for other applications such as HPCG and HPCC.
 
 The idea is to use this Python script inside the existing CLI tools and job scripts.
 

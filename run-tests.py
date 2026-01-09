@@ -40,7 +40,7 @@ def execute(config):
             'returncode': p.returncode,
         }
 
-        if "Loop" in status['stdout']:
+        if config['run_completed_marker'] in status['stdout']:
             #print('Run completed')    
             # Write the output to a temporary file .tmp.txt
             with open(".tmp.txt", "w") as f:
@@ -57,6 +57,10 @@ def execute(config):
                 f.close()
             if output_results is not None:
                 status['output_results'] = output_results['output']
+        else:
+            msg = f"The run did not completed successfully. Rerun {cmd_str} to troubleshoot."
+            logging.error(msg)
+
         return status
 
     except subprocess.TimeoutExpired:

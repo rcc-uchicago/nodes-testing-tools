@@ -6,6 +6,7 @@
   mpiexec_numproc_flag: "-np"
   args: "-in /project/rcc/shared/nodes-testing/lammps/bench/in.lj -cite none"
   extract_output_script: "./lammps_extract_output.sh"
+  run_completed_marker: "Loop"
   expected:
     TotEng:
       value: -4.6223113
