@@ -29,18 +29,18 @@ then
     num_nodes=`grep NodeCnt res_info.txt | awk '{print $2}'| sed 's/NodeCnt=//g'`
     max_cores=`grep CoreCnt res_info.txt | awk '{print $3}'| sed 's/CoreCnt=//g'`
 
-
     scontrol show node $nodelist > node_info.txt
     real_mem=`grep RealMemory node_info.txt | awk '{print $1}'| sed 's/RealMemory=//g'`
     max_ppn=`grep CPUTot node_info.txt | awk '{print $2}'| sed 's/CPUTot=//g'`
     threads_per_node=`grep ThreadsPerCore node_info.txt | awk '{print $2}'| sed 's/ThreadsPerCore=//g'`
     has_gpu=`grep "gpu:" node_info.txt`
 
-    if [ $max_cores -ne $max_ppn];
+    real_mem=$(( real_mem / 1024 ))
+
+    if [ $max_cores -ne $max_ppn ];
     then
         echo "Inconsistent core numbers: CoreCnt=$max_cores CPUTot=$max_ppn"
     fi
-
 
     gpu_nodes=0
     output="output-cpu-$nodelist.txt"
@@ -54,9 +54,9 @@ then
         queue_template="queue-gpu-nodes.txt"
         queue_file="queue-gpu-$nodelist.txt"
 
-        echo "Node has $max_ppn CPU cores; $real_mem memory and $gres GPUs"
+        echo "Node has $max_ppn CPU cores; $real_mem GB memory and $gres GPUs"
     else
-        echo "Node has $max_ppn CPU cores; $real_mem memory"
+        echo "Node has $max_ppn CPU cores; $real_mem GB memory"
     fi
 
     echo "Testing $nodelist .."
@@ -71,12 +71,11 @@ then
         fi
     fi
 
-
-    cp $queue_template.txt $queue_file
+    cp $queue_template $queue_file
     sed -i "s/--reservation=Test_CPP/--reservation=$reservation/g" $queue_file
 
     echo "Submitting job script $queue_file.."
-    sbatch --nodelist=$nodelist --ntasks-per-node=$max_cores --output=$output $queue_file
+    sbatch --nodelist=$nodelist --ntasks-per-node=$max_cores $queue_file $output
 
     echo "Checking job output log $output for details"
 

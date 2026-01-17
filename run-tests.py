@@ -1,7 +1,11 @@
 
 # Contact: ndtrung@uchicago.edu
-# usage:
-#   python3 run-tests.py --config-file=lammps.yaml
+# usage: on a compute node, activate the env, then run the script with a YAML file
+#
+#   module load python/miniforge-25.3.0
+#   source /project/rcc/shared/nodes-testing/testing-env/bin/activate
+#   ulimit -l unlimited
+#   python3 run-tests.py --config-file lammps.yaml
 
 from argparse import ArgumentParser
 from datetime import datetime
