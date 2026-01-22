@@ -29,10 +29,15 @@ def execute(config):
         cmd_str = f"module load {config['modules_needed']} && "
 
     # check if mpiexec/mpirun is used
-    if config['mpiexec']:
-        cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+    if 'mpiexec' in config:
+        if config['mpiexec']:
+            cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
 
-    cmd_str += config['app_binary'] + " " + config['args']
+    args = ""
+    if 'input_dir' in config:
+        args = config['args'].replace("$input_dir", config['input_dir'])
+
+    cmd_str += config['app_binary'] + " " + args
     logging.info(f"Execute:")
     logging.info(f"  {cmd_str}")
     try:
@@ -51,7 +56,11 @@ def execute(config):
                 f.write(status['stdout'])
                 f.close()
             # Run the script to extract output
-            cmd_str = "source " + config['extract_output_script'] + " .tmp.txt > output.yaml"
+            working_dir = "./"
+            if 'working_dir' in config:
+                working_dir = config['working_dir']
+            extract_script = config['extract_output_script'].replace("$working_dir", working_dir)
+            cmd_str = "source " + extract_script + " .tmp.txt > output.yaml"
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=60)
             output = p.stdout.split()
 

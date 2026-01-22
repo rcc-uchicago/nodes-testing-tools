@@ -4,8 +4,10 @@
   nprocs: "4"
   mpiexec: "mpirun"
   mpiexec_numproc_flag: "-np"
-  args: "-in /project/rcc/shared/nodes-testing/lammps/bench/in.lj -cite none"
-  extract_output_script: "./lammps_extract_output.sh"
+  working_dir: "/project/rcc/users/trung/nodes-testing-tools"
+  input_dir: "/project/rcc/shared/nodes-testing/lammps/bench"
+  args: "-in $input_dir/in.lj -cite none"
+  extract_output_script: "$working_dir/lammps_extract_output.sh"
   run_completed_marker: "Loop"
   expected:
     TotEng:
