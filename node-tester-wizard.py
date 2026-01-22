@@ -46,9 +46,14 @@ class NodeTestPage(QWizardPage):
         self.project_name = QLineEdit()
         self.project_name.setPlaceholderText("test-cpp-ticket-1234.txt")
 
+        self.nodelist = QLineEdit()
+        self.nodelist.setPlaceholderText("midway3-0001")
+
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Project:"))
         layout.addWidget(self.project_name)
+        layout.addWidget(QLabel("Node List:"))
+        layout.addWidget(self.nodelist)
         layout.addWidget(QLabel("Select a Test Pipeline:"))
         layout.addWidget(self.test_combo)
         self.setLayout(layout)
@@ -56,6 +61,7 @@ class NodeTestPage(QWizardPage):
         # Notify wizard when inputs change
         self.test_combo.currentIndexChanged.connect(self.completeChanged)
         self.project_name.textChanged.connect(self.completeChanged)
+        self.nodelist.textChanged.connect(self.completeChanged)
 
         # Optional UX improvement
         #self.vendor_combo.currentIndexChanged.connect(self.update_ui)
@@ -64,10 +70,11 @@ class NodeTestPage(QWizardPage):
         # Register fields
         self.registerField("test*", self.test_combo, "currentText")
         self.registerField("project_name", self.project_name)
+        self.registerField("nodelist", self.nodelist)
 
     #def update_ui(self):
-    #    is_vendor1 = self.vendor_combo.currentText() == "Vendor 1"
-    #    self.project_id.setEnabled(is_vendor1)
+    #    is_cpu_only = self.test_combo.currentText() == "CPU-only Nodes"
+    #    self.project_name.setEnabled(is_cpu_only)
 
     # Controls Next button enabled
     def isComplete(self):
@@ -102,12 +109,11 @@ class PipelineConfigurationPage(QWizardPage):
         # IMPORTANT: this is the last page
         #self.setFinalPage(True)
 
-        self.run_lscpu = QCheckBox("lscpu")
-        self.run_hpcg = QCheckBox("HPCG")
-        self.run_lammps = QCheckBox("LAMMPS")
-        self.run_mpgadget = QCheckBox("MP-Gadget")
-        
-        self.run_nvidiasmi = QCheckBox("nvidia-smi")
+        self.run_lscpu = QCheckBox("lscpu (lscpu.yaml)")
+        self.run_hpcg = QCheckBox("HPCG (hpcg.yaml)")
+        self.run_lammps = QCheckBox("LAMMPS (lammps.yaml)")
+        self.run_mpgadget = QCheckBox("MP-Gadget (mpgadget.yaml)")
+        self.run_nvidiasmi = QCheckBox("nvidia-smi (nvidiasmi.yaml)")
 
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Select the applications:"))
@@ -116,6 +122,8 @@ class PipelineConfigurationPage(QWizardPage):
         layout.addWidget(self.run_lammps)
         layout.addWidget(self.run_mpgadget)
         layout.addWidget(self.run_nvidiasmi)
+
+        layout.addWidget(QLabel("Clicking Next will generate the job script job_script.txt to submit."))
         self.setLayout(layout)
 
         # Register fields
@@ -132,6 +140,60 @@ class PipelineConfigurationPage(QWizardPage):
 
         if not is_running_nvidiasmi:
             self.run_nvidiasmi.setChecked(False)
+
+    def validatePage(self):
+
+        # generate a job script file ready for submission but don't submit the job
+
+        run_lscpu = self.field("run_lscpu")
+        run_hpcg = self.field("run_hpcg")
+        run_lammps = self.field("run_lammps")
+        run_mpgadget = self.field("run_mpgadget")
+        nodelist = self.field("nodelist")
+
+        content  = f"#!/bin/bash\n"
+        content += f"#SBATCH --account=rcc-staff\n"
+        content += f"#SBATCH --partition=test\n"
+        content += f"#SBATCH --nodelist={nodelist}\n"
+        content += f"#SBATCH --reservation=TestCPP\n"
+        content += f"#SBATCH --mem=0\n"
+        content += f"#SBATCH --time=00:30:00\n"
+        content += f"#SBATCH --exclusive\n"
+        content += f"nodelist=$SLURM_NODELIST\n"
+        content += f"OUTPUT=$1\n"
+        content += f"echo \"Job ID: \$SLURM_JOB_ID\" > $OUTPUT\n"
+        content += f"echo \"Nodes = \$nodelist\" >> $OUTPUT\n"
+        content += f"echo \"Job type: CPU-only\" >> $OUTPUT\n"
+        content += f"echo \"Date: `date`\" >> $OUTPUT\n"
+        content += f"cd $SLURM_SUBMIT_DIR\n"
+        content += f"CWD=`pwd`\n"
+        content += "max_ppn=`scontrol show node $nodelist | grep CPUTot | awk '{print $2}'| sed 's/CPUTot=//g'`\n"
+
+        content += "nodes=$SLURM_NNODES\n"
+        content += "if [ -n \"$SLURM_NTASKS_PER_NODE\" ]\n"
+        content += "then\n"
+        content += "  ppn=$SLURM_NTASKS_PER_NODE\n"
+        content += "else\n"
+        content += "   ppn=$max_ppn\n"
+        content += "fi\n"
+        content += "n=$(( ppn * nodes ))\n"
+        content += "ulimit -l unlimited\n"
+        content += "ulimit -s unlimited\n"
+        content += "module load load python/miniforge-25.3.0\n"
+        content += "source /project/rcc/shared/nodes-testing/testing-env/bin/activate\n"
+        if run_lscpu:
+            content += "python3 run-tests.py --config-file lscpu.yaml\n"
+        if run_hpcg:
+            content += "python3 run-tests.py --config-file hpcg.yaml\n"    
+        if run_lammps:
+            content += "python3 run-tests.py --config-file lammps.yaml\n"
+        if run_mpgadget:
+            content += "python3 run-tests.py --config-file mp-gadget.yaml\n"    
+
+        with open("job_script.txt", "w") as f:
+            f.write(content)
+
+        return True
 
 # ---------- Page 4: Submit job and waiting for results ----------
 
@@ -177,56 +239,6 @@ class NodeTesterWizard(QWizard):
         self.addPage(PipelineConfigurationPage())
         self.addPage(JobMonitorPage())
 
-
-    def generateJobScript(self):
-        run_lscpu = self.field("run_lscpu")
-        run_hpcg = self.field("run_hpcg")
-        run_lammps = self.field("run_lammps")
-        run_mpgadget = self.field("run_mpgadget")
-
-        content  = f"#!/bin/bash\n"
-        content += f"#SBATCH --account=rcc-staff\n"
-        content += f"#SBATCH --partition=test\n"
-        content += f"#SBATCH --nodelist=\n"
-
-        content += f"#SBATCH --reservation=Test_CPP\n"
-        content += f"#SBATCH --mem=0\n"
-        content += f"#SBATCH --time=00:30:00\n"
-        content += f"#SBATCH --exclusive\n"
-        content += f"nodelist=$SLURM_NODELIST\n"
-        content += f"OUTPUT=$1\n"
-        content += f"echo \"Job ID: \$SLURM_JOB_ID\" > $OUTPUT\n"
-        content += f"echo \"Nodes = \$nodelist\" >> $OUTPUT\n"
-        content += f"echo \"Job type: CPU-only\" >> $OUTPUT\n"
-        content += f"echo \"Date: `date`\" >> $OUTPUT\n"
-        content += f"cd $SLURM_SUBMIT_DIR\n"
-        content += f"CWD=`pwd`\n"
-        content += "max_ppn=`scontrol show node $nodelist | grep CPUTot | awk '{print $2}'| sed 's/CPUTot=//g'`\n"
-
-        content += "nodes=$SLURM_NNODES\n"
-        content += "if [ -n \"$SLURM_NTASKS_PER_NODE\" ]\n"
-        content += "then\n"
-        content += "  ppn=$SLURM_NTASKS_PER_NODE\n"
-        content += "else\n"
-        content += "   ppn=$max_ppn\n"
-        content += "fi\n"
-        content += "n=$(( ppn * nodes ))\n"
-        content += "ulimit -l unlimited\n"
-        content += "ulimit -s unlimited\n"
-        content += "module load load python/miniforge-25.3.0\n"
-        content += "source /project/rcc/shared/nodes-testing/testing-env/bin/activate\n"
-        if run_lscpu:
-            content += "python3 run-tests.py --config-file lscpu.yaml\n"
-        if run_hpcg:
-            content += "python3 run-tests.py --config-file hpcg.yaml\n"    
-        if run_lammps:
-            content += "python3 run-tests.py --config-file lammps.yaml\n"
-        if run_mpgadget:
-            content += "python3 run-tests.py --config-file mp-gadget.yaml\n"    
-
-        with open("job_script.txt", "w") as f:
-            f.write(content)
-
     # Final commit
     def accept(self):
         test = self.field("test")
@@ -252,8 +264,6 @@ class NodeTesterWizard(QWizard):
                 f.write(f"Script=queue-cpu-nodes.txt\n")
             elif test == "GPU Nodes":
                 f.write(f"Script=queue-cpu-nodes.txt\n")
-
-            self.generateJobScript()
 
         super().accept()
 
