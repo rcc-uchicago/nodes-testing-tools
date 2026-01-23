@@ -7,11 +7,14 @@
 #   python3 node-tester-wizard.py
 
 import sys
+import subprocess
+from PySide6.QtCore import QProcess, QTimer
 from PySide6.QtWidgets import (
     QApplication, QWizard, QWizardPage,
-    QLabel, QVBoxLayout, QComboBox,
+    QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
     QLineEdit, QMessageBox, QCheckBox,
-    QTableWidget, QTableWidgetItem, QHeaderView
+    QTableWidget, QTableWidgetItem, QHeaderView,
+    QPushButton
 )
 
 # ---------- Page 1: Welcome ----------
@@ -21,7 +24,7 @@ class WelcomePage(QWizardPage):
         self.setTitle("Welcome")
 
         label = QLabel(
-            "Welcome to the RCC Node Tester Wizard.\n"
+            "Welcome to the RCC Node Tester Wizard!\n"
             "Click Next to continue."
         )
         label.setWordWrap(True)
@@ -44,7 +47,7 @@ class NodeTestPage(QWizardPage):
         self.test_combo.addItems(["CPU-only Nodes", "GPU Nodes", "Data Transfers", "I/O Bandwidth"])
 
         self.project_name = QLineEdit()
-        self.project_name.setPlaceholderText("test-cpp-ticket-1234.txt")
+        self.project_name.setPlaceholderText("test-cpp-ticket-1234")
 
         self.nodelist = QLineEdit()
         self.nodelist.setPlaceholderText("midway3-0001")
@@ -92,10 +95,15 @@ class NodeTestPage(QWizardPage):
                     "GPUs need to be requested."
                 )
                 return False
-        name = self.project_name.text().strip()
-        if not name:
+        pname = self.project_name.text().strip()
+        if not pname:
             placeholderText = self.project_name.placeholderText()
             self.project_name.setText(placeholderText)
+
+        nlist = self.nodelist.text().strip()
+        if not nlist:
+            placeholderText = self.nodelist.placeholderText()
+            self.nodelist.setText(placeholderText)
 
         return True
 
@@ -110,26 +118,47 @@ class PipelineConfigurationPage(QWizardPage):
         #self.setFinalPage(True)
 
         self.run_lscpu = QCheckBox("lscpu (lscpu.yaml)")
-        self.run_hpcg = QCheckBox("HPCG (hpcg.yaml)")
-        self.run_lammps = QCheckBox("LAMMPS (lammps.yaml)")
+        self.run_hpcg = QCheckBox("HPCG")
+        self.hpcg_config = QLineEdit()
+        self.hpcg_config.setPlaceholderText("hpcg.yaml")
+        
+        self.run_lammps = QCheckBox("LAMMPS")
+        self.lammps_config = QLineEdit()
+        self.lammps_config.setPlaceholderText("lammps.yaml")
+
         self.run_mpgadget = QCheckBox("MP-Gadget (mpgadget.yaml)")
         self.run_nvidiasmi = QCheckBox("nvidia-smi (nvidiasmi.yaml)")
+        self.submit_btn = QPushButton("Submit the generated job script")
+        self.submit_btn.clicked.connect(self.submit_jobs)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Select the applications:"))
+        layout.addWidget(QLabel("Select the application to run and the configuration file:"))
         layout.addWidget(self.run_lscpu)
-        layout.addWidget(self.run_hpcg)
-        layout.addWidget(self.run_lammps)
+
+        row1 = QHBoxLayout()
+        row1.addWidget(self.run_hpcg)
+        row1.addWidget(self.hpcg_config)
+        layout.addLayout(row1)
+
+        row2 = QHBoxLayout()
+        row2.addWidget(self.run_lammps)
+        row2.addWidget(self.lammps_config)
+        layout.addLayout(row2)
+
         layout.addWidget(self.run_mpgadget)
         layout.addWidget(self.run_nvidiasmi)
+        layout.addSpacing(20)
+        layout.addWidget(self.submit_btn)
 
-        layout.addWidget(QLabel("Clicking Next will generate the job script job_script.txt to submit."))
+        layout.addWidget(QLabel("Clicking Next will also generate the job script job_script.txt."))
         self.setLayout(layout)
 
         # Register fields
         self.registerField("run_lscpu", self.run_lscpu)
         self.registerField("run_hpcg", self.run_hpcg)
+        self.registerField("hpcg_config", self.hpcg_config)
         self.registerField("run_lammps", self.run_lammps)
+        self.registerField("lammps_config", self.lammps_config)
         self.registerField("run_mpgadget", self.run_mpgadget)
         self.registerField("run_nvidiasmi", self.run_nvidiasmi)
 
@@ -141,13 +170,43 @@ class PipelineConfigurationPage(QWizardPage):
         if not is_running_nvidiasmi:
             self.run_nvidiasmi.setChecked(False)
 
+    def submit_jobs(self):
+        filename = "job_script.txt"
+        self.generate_job_script(filename)
+
+        self.proc = QProcess(self)
+        self.proc.finished.connect(self.on_finished)
+        self.proc.start("sbatch", [job_script])
+
+    def on_finished(self, exit_code, exit_status):
+        print("Submitting job script finished")
+        print(f"Exit code: {exit_code}")
+        print(f"Exit status: {exit_status}")
+
     def validatePage(self):
 
+        config = self.hpcg_config.text().strip()
+        if not config:
+            placeholderText = self.hpcg_config.placeholderText()
+            self.hpcg_config.setText(placeholderText)
+
+        config = self.lammps_config.text().strip()
+        if not config:
+            placeholderText = self.lammps_config.placeholderText()
+            self.lammps_config.setText(placeholderText)            
+
+        filename = "job_script.txt"
+        self.generate_job_script(filename)
+        return True
+
+    def generate_job_script(self, filename):
         # generate a job script file ready for submission but don't submit the job
 
         run_lscpu = self.field("run_lscpu")
         run_hpcg = self.field("run_hpcg")
+        hpcg_config = self.field("hpcg_config")
         run_lammps = self.field("run_lammps")
+        lammps_config = self.field("lammps_config")
         run_mpgadget = self.field("run_mpgadget")
         nodelist = self.field("nodelist")
 
@@ -190,10 +249,9 @@ class PipelineConfigurationPage(QWizardPage):
         if run_mpgadget:
             content += "python3 run-tests.py --config-file mp-gadget.yaml\n"    
 
-        with open("job_script.txt", "w") as f:
+        with open(filename, "w") as f:
             f.write(content)
 
-        return True
 
 # ---------- Page 4: Submit job and waiting for results ----------
 
@@ -205,9 +263,9 @@ class JobMonitorPage(QWizardPage):
         # IMPORTANT: this is the last page
         self.setFinalPage(True)
 
-        self.table = QTableWidget(0, 3)
+        self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
-            ["Job ID", "Status", "Test Type"]
+            ["Project", "Job ID", "Job script", "Status", "Test Type"]
         )
 
         # UI polish
@@ -217,13 +275,44 @@ class JobMonitorPage(QWizardPage):
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Test job status:"))
-        layout.addWidget(self.table)        
-        
+        layout.addWidget(QLabel("Ongoing jobs:"))
+        layout.addWidget(self.table)
         self.setLayout(layout)
 
-        # Register fields
-        
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_job_list)
+        self.timer.start(5000)
+
+
+    def update_job_list(self):
+        test = self.field("test")
+        project_name = self.field("project_name")
+        cmd_str = "squeue -u $USER -h --format \"%i %j %t \" "
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=60)
+        status = { 
+            'cmd_str': cmd_str,
+            'stdout': p.stdout,
+            'stderr': p.stderr,
+            'returncode': p.returncode,
+        }
+        jobs = p.stdout.strip().splitlines()
+        self.table.setRowCount(0)
+        row = 0
+        for job in jobs:
+            self.table.insertRow(row)
+            jobid, job_script, status = job.split()
+            if status == "PD":
+                status = "Pending"
+            elif status == "R":
+                status = "Running"
+
+            self.table.setItem(row, 0, QTableWidgetItem(project_name))                
+            self.table.setItem(row, 1, QTableWidgetItem(jobid))
+            self.table.setItem(row, 2, QTableWidgetItem(job_script))
+            self.table.setItem(row, 3, QTableWidgetItem(status))
+            self.table.setItem(row, 4, QTableWidgetItem(test))
+
+            row = row + 1
 
 
 # ---------- Wizard ----------
@@ -247,8 +336,10 @@ class NodeTesterWizard(QWizard):
         run_hpcg = self.field("run_hpcg")
         run_lammps = self.field("run_lammps")
         run_mpgadget = self.field("run_mpgadget")
+        run_nvidiasmi = self.field("run_nvidiasmi")
 
-        with open("test.txt", "w") as f:
+        outputfile = project_name + ".txt"
+        with open(outputfile, "w") as f:
             f.write(f"test: \"{test}\"\n")
             f.write(f"project_name: {project_name}\n")
             f.write(f"applications:\n")
@@ -259,11 +350,11 @@ class NodeTesterWizard(QWizard):
             if run_lammps:
                 f.write(f"  LAMMPS\n")
             if run_mpgadget:
-                f.write(f"  MP-Gadget\n")                
+                f.write(f"  MP-Gadget\n")
+            if run_nvidiasmi:
+                f.write(f"  nvidia-smi\n")
             if test == "CPU-only Nodes":
-                f.write(f"Script=queue-cpu-nodes.txt\n")
-            elif test == "GPU Nodes":
-                f.write(f"Script=queue-cpu-nodes.txt\n")
+                f.write(f"Job script=job_script.txt\n")
 
         super().accept()
 
