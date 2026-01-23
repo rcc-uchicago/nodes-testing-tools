@@ -133,11 +133,15 @@ class PipelineConfigurationPage(QWizardPage):
 
         self.run_mpgadget = QCheckBox("MP-Gadget (mpgadget.yaml)")
         self.run_nvidiasmi = QCheckBox("nvidia-smi (nvidiasmi.yaml)")
+
+        self.job_script = QLineEdit()
+        self.job_script.setPlaceholderText("job_script.txt")
+
         self.submit_btn = QPushButton("Submit the generated job script")
         self.submit_btn.clicked.connect(self.submit_jobs)
 
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Select the application to run and the configuration file:"))
+        layout.addWidget(QLabel("Select the application(s) to run and specify the configuration files:"))
         layout.addWidget(self.run_lscpu)
 
         row1 = QHBoxLayout()
@@ -157,10 +161,13 @@ class PipelineConfigurationPage(QWizardPage):
 
         layout.addWidget(self.run_mpgadget)
         layout.addWidget(self.run_nvidiasmi)
+        layout.addWidget(QLabel("Job script:"))
+        layout.addWidget(self.job_script)
+
         layout.addSpacing(20)
         layout.addWidget(self.submit_btn)
 
-        layout.addWidget(QLabel("Clicking Next will also generate the job script job_script.txt."))
+        layout.addWidget(QLabel(f"Clicking Next will also generate the job script."))
         self.setLayout(layout)
 
         # Register fields
@@ -173,6 +180,7 @@ class PipelineConfigurationPage(QWizardPage):
         self.registerField("lammps_config", self.lammps_config)
         self.registerField("run_mpgadget", self.run_mpgadget)
         self.registerField("run_nvidiasmi", self.run_nvidiasmi)
+        self.registerField("job_script", self.job_script)
 
     def initializePage(self):        
         test = self.field("test")
@@ -183,7 +191,7 @@ class PipelineConfigurationPage(QWizardPage):
             self.run_nvidiasmi.setChecked(False)
 
     def submit_jobs(self):
-        filename = "job_script.txt"
+        filename = self.field("job_script")
         self.generate_job_script(filename)
 
         self.proc = QProcess(self)
@@ -197,6 +205,7 @@ class PipelineConfigurationPage(QWizardPage):
 
     def validatePage(self):
 
+        # retrieve the config file names, using the placeholder text if none is explicitly given
         config = self.hpcc_config.text().strip()
         if not config:
             placeholderText = self.hpcc_config.placeholderText()
@@ -210,10 +219,20 @@ class PipelineConfigurationPage(QWizardPage):
         config = self.lammps_config.text().strip()
         if not config:
             placeholderText = self.lammps_config.placeholderText()
-            self.lammps_config.setText(placeholderText)            
+            self.lammps_config.setText(placeholderText)         
 
-        filename = "job_script.txt"
+        script_name = self.job_script.text().strip()
+        if not script_name:
+            placeholderText = self.job_script.placeholderText()
+            self.job_script.setText(placeholderText)         
+
+        # generate the job script for submission
+        filename = self.job_script.text().strip()
         self.generate_job_script(filename)
+
+        # invoke the wizard serialize() to store the settings and options being made at this point
+        self.wizard().serialize()
+
         return True
 
     def generate_job_script(self, filename):
@@ -349,8 +368,7 @@ class NodeTesterWizard(QWizard):
         self.addPage(PipelineConfigurationPage())
         self.addPage(JobMonitorPage())
 
-    # Final commit
-    def accept(self):
+    def serialize(self):
         test = self.field("test")
         project_name = self.field("project_name")
         run_lscpu = self.field("run_lscpu")
@@ -358,6 +376,7 @@ class NodeTesterWizard(QWizard):
         run_lammps = self.field("run_lammps")
         run_mpgadget = self.field("run_mpgadget")
         run_nvidiasmi = self.field("run_nvidiasmi")
+        job_script = self.field("job_script")
 
         outputfile = project_name + ".txt"
         with open(outputfile, "w") as f:
@@ -375,13 +394,12 @@ class NodeTesterWizard(QWizard):
             if run_nvidiasmi:
                 f.write(f"  nvidia-smi\n")
             if test == "CPU-only Nodes":
-                f.write(f"Job script=job_script.txt\n")
+                f.write(f"Job script: {job_script}\n")
 
+    # Final commit
+    def accept(self):
+        self.serialize()
         super().accept()
-
-    
-        
-
 
 # ---------- Main ----------
 if __name__ == "__main__":
