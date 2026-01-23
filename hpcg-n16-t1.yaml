@@ -1,0 +1,32 @@
+---
+  app_binary: "xhpcg"
+  modules_needed: ""
+  nprocs: "16"
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "-np"
+  working_dir: "/project/rcc/users/trung/nodes-testing-tools"
+  input_dir: "/project/rcc/users/trung/RCC-benchmark-suite/hpcg/tests"
+  args: ""
+  extract_output_script: "$working_dir/hpcg_extract_output.sh"
+  run_completed_marker: "VALID"
+  expected:
+    GFLOPs:
+      value: 217.394
+      abstol: 5.0
+    WAXPBY:
+      value: 175.646
+      reltol: 10.0
+    SpMV:
+      value: 289.456
+      reltol: 10.0
+    MG:
+      value: 246.918
+      reltol: 10.0
+    TotalBW:
+      value: 1693.42
+      reltol: 5.0
+    MPIAllreduceImbalance:
+      value: 0.3
+
+
+
