@@ -118,6 +118,11 @@ class PipelineConfigurationPage(QWizardPage):
         #self.setFinalPage(True)
 
         self.run_lscpu = QCheckBox("lscpu (lscpu.yaml)")
+
+        self.run_hpcc = QCheckBox("HPCC")
+        self.hpcc_config = QLineEdit()
+        self.hpcc_config.setPlaceholderText("hpcc-n8.yaml")
+
         self.run_hpcg = QCheckBox("HPCG")
         self.hpcg_config = QLineEdit()
         self.hpcg_config.setPlaceholderText("hpcg.yaml")
@@ -136,14 +141,19 @@ class PipelineConfigurationPage(QWizardPage):
         layout.addWidget(self.run_lscpu)
 
         row1 = QHBoxLayout()
-        row1.addWidget(self.run_hpcg)
-        row1.addWidget(self.hpcg_config)
+        row1.addWidget(self.run_hpcc)
+        row1.addWidget(self.hpcc_config)
         layout.addLayout(row1)
 
         row2 = QHBoxLayout()
-        row2.addWidget(self.run_lammps)
-        row2.addWidget(self.lammps_config)
+        row2.addWidget(self.run_hpcg)
+        row2.addWidget(self.hpcg_config)
         layout.addLayout(row2)
+
+        row3 = QHBoxLayout()
+        row3.addWidget(self.run_lammps)
+        row3.addWidget(self.lammps_config)
+        layout.addLayout(row3)
 
         layout.addWidget(self.run_mpgadget)
         layout.addWidget(self.run_nvidiasmi)
@@ -155,6 +165,8 @@ class PipelineConfigurationPage(QWizardPage):
 
         # Register fields
         self.registerField("run_lscpu", self.run_lscpu)
+        self.registerField("run_hpcc", self.run_hpcc)
+        self.registerField("hpcc_config", self.hpcc_config)
         self.registerField("run_hpcg", self.run_hpcg)
         self.registerField("hpcg_config", self.hpcg_config)
         self.registerField("run_lammps", self.run_lammps)
@@ -176,7 +188,7 @@ class PipelineConfigurationPage(QWizardPage):
 
         self.proc = QProcess(self)
         self.proc.finished.connect(self.on_finished)
-        self.proc.start("sbatch", [job_script])
+        self.proc.start("sbatch", [filename])
 
     def on_finished(self, exit_code, exit_status):
         print("Submitting job script finished")
@@ -184,6 +196,11 @@ class PipelineConfigurationPage(QWizardPage):
         print(f"Exit status: {exit_status}")
 
     def validatePage(self):
+
+        config = self.hpcc_config.text().strip()
+        if not config:
+            placeholderText = self.hpcc_config.placeholderText()
+            self.hpcc_config.setText(placeholderText)
 
         config = self.hpcg_config.text().strip()
         if not config:
@@ -203,6 +220,8 @@ class PipelineConfigurationPage(QWizardPage):
         # generate a job script file ready for submission but don't submit the job
 
         run_lscpu = self.field("run_lscpu")
+        run_hpcc = self.field("run_hpcc")
+        hpcc_config = self.field("hpcc_config")
         run_hpcg = self.field("run_hpcg")
         hpcg_config = self.field("hpcg_config")
         run_lammps = self.field("run_lammps")
@@ -242,10 +261,12 @@ class PipelineConfigurationPage(QWizardPage):
         content += "source /project/rcc/shared/nodes-testing/testing-env/bin/activate\n"
         if run_lscpu:
             content += "python3 run-tests.py --config-file lscpu.yaml\n"
+        if run_hpcc:
+            content += f"python3 run-tests.py --config-file {hpcc_config}\n"
         if run_hpcg:
-            content += "python3 run-tests.py --config-file hpcg.yaml\n"    
+            content += f"python3 run-tests.py --config-file {hpcg_config}\n"
         if run_lammps:
-            content += "python3 run-tests.py --config-file lammps.yaml\n"
+            content += f"python3 run-tests.py --config-file {lammps_config}\n"
         if run_mpgadget:
             content += "python3 run-tests.py --config-file mp-gadget.yaml\n"    
 
