@@ -132,6 +132,11 @@ class PipelineConfigurationPage(QWizardPage):
         self.lammps_config.setPlaceholderText("lammps.yaml")
 
         self.run_mpgadget = QCheckBox("MP-Gadget (mpgadget.yaml)")
+
+        self.run_custom = QCheckBox("Custom application")
+        self.custom_config = QLineEdit()
+        self.custom_config.setPlaceholderText("custom-app.yaml")
+
         self.run_nvidiasmi = QCheckBox("nvidia-smi (nvidiasmi.yaml)")
 
         self.job_script = QLineEdit()
@@ -160,6 +165,12 @@ class PipelineConfigurationPage(QWizardPage):
         layout.addLayout(row3)
 
         layout.addWidget(self.run_mpgadget)
+
+        row4 = QHBoxLayout()
+        row4.addWidget(self.run_custom)
+        row4.addWidget(self.custom_config)
+        layout.addLayout(row4)
+
         layout.addWidget(self.run_nvidiasmi)
         layout.addWidget(QLabel("Job script:"))
         layout.addWidget(self.job_script)
@@ -178,6 +189,8 @@ class PipelineConfigurationPage(QWizardPage):
         self.registerField("hpcg_config", self.hpcg_config)
         self.registerField("run_lammps", self.run_lammps)
         self.registerField("lammps_config", self.lammps_config)
+        self.registerField("run_custom", self.run_custom)
+        self.registerField("custom_config", self.custom_config)
         self.registerField("run_mpgadget", self.run_mpgadget)
         self.registerField("run_nvidiasmi", self.run_nvidiasmi)
         self.registerField("job_script", self.job_script)
@@ -221,6 +234,11 @@ class PipelineConfigurationPage(QWizardPage):
             placeholderText = self.lammps_config.placeholderText()
             self.lammps_config.setText(placeholderText)         
 
+        config = self.custom_config.text().strip()
+        if not config:
+            placeholderText = self.custom_config.placeholderText()
+            self.custom_config.setText(placeholderText)  
+
         script_name = self.job_script.text().strip()
         if not script_name:
             placeholderText = self.job_script.placeholderText()
@@ -245,8 +263,18 @@ class PipelineConfigurationPage(QWizardPage):
         hpcg_config = self.field("hpcg_config")
         run_lammps = self.field("run_lammps")
         lammps_config = self.field("lammps_config")
+        run_custom = self.field("run_custom")
+        custom_config = self.field("custom_config")
         run_mpgadget = self.field("run_mpgadget")
+        run_nvidiasmi = self.field("run_nvidiasmi")
         nodelist = self.field("nodelist")
+
+        if run_lscpu == False and run_hpcc == False and run_hpcg == False and run_lammps == False and run_custom == False and run_mpgadget == False and run_nvidiasmi == False:
+            QMessageBox.warning(
+                    self,
+                    "Application Required",
+                    "Need at least an application to run.")
+            return
 
         content  = f"#!/bin/bash\n"
         content += f"#SBATCH --account=rcc-staff\n"
@@ -288,6 +316,10 @@ class PipelineConfigurationPage(QWizardPage):
             content += f"python3 run-tests.py --config-file {lammps_config}\n"
         if run_mpgadget:
             content += "python3 run-tests.py --config-file mp-gadget.yaml\n"    
+
+        if run_custom:
+            if custom_config != "":
+                content += f"python3 run-tests.py --config-file {custom_config}\n"
 
         with open(filename, "w") as f:
             f.write(content)
