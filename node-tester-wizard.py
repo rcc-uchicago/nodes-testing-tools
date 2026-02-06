@@ -18,23 +18,24 @@ from PySide6.QtWidgets import (
 )
 
 # ---------- Page 1: Welcome ----------
+
 class WelcomePage(QWizardPage):
     def __init__(self):
         super().__init__()
-        self.setTitle("Welcome")
+        self.setTitle("Welcome to the RCC Node Tester Wizard!")
 
-        label = QLabel(
-            "Welcome to the RCC Node Tester Wizard!\n"
-            "Click Next to continue."
-        )
+        label = QLabel("Copyright 2025-2026, Research Computing Center, University of Chicago.\n")
         label.setWordWrap(True)
 
         layout = QVBoxLayout()
         layout.addWidget(label)
+        layout.addSpacing(60)
+        layout.addWidget(QLabel(f"Click Next to continue."))
         self.setLayout(layout)
 
 
 # ---------- Page 2: Node Test Selection ----------
+
 class NodeTestPage(QWizardPage):
     def __init__(self):
         super().__init__()
@@ -139,12 +140,6 @@ class PipelineConfigurationPage(QWizardPage):
 
         self.run_nvidiasmi = QCheckBox("nvidia-smi (nvidiasmi.yaml)")
 
-        self.job_script = QLineEdit()
-        self.job_script.setPlaceholderText("job_script.txt")
-
-        self.submit_btn = QPushButton("Submit the generated job script")
-        self.submit_btn.clicked.connect(self.submit_jobs)
-
         layout = QVBoxLayout()
         layout.addWidget(QLabel("Select the application(s) to run and specify the configuration files:"))
         layout.addWidget(self.run_lscpu)
@@ -172,13 +167,9 @@ class PipelineConfigurationPage(QWizardPage):
         layout.addLayout(row4)
 
         layout.addWidget(self.run_nvidiasmi)
-        layout.addWidget(QLabel("Job script:"))
-        layout.addWidget(self.job_script)
 
         layout.addSpacing(20)
-        layout.addWidget(self.submit_btn)
-
-        layout.addWidget(QLabel(f"Clicking Next will also generate the job script."))
+        
         self.setLayout(layout)
 
         # Register fields
@@ -193,7 +184,7 @@ class PipelineConfigurationPage(QWizardPage):
         self.registerField("custom_config", self.custom_config)
         self.registerField("run_mpgadget", self.run_mpgadget)
         self.registerField("run_nvidiasmi", self.run_nvidiasmi)
-        self.registerField("job_script", self.job_script)
+
 
     def initializePage(self):        
         test = self.field("test")
@@ -202,19 +193,6 @@ class PipelineConfigurationPage(QWizardPage):
 
         if not is_running_nvidiasmi:
             self.run_nvidiasmi.setChecked(False)
-
-    def submit_jobs(self):
-        filename = self.field("job_script")
-        self.generate_job_script(filename)
-
-        self.proc = QProcess(self)
-        self.proc.finished.connect(self.on_finished)
-        self.proc.start("sbatch", [filename])
-
-    def on_finished(self, exit_code, exit_status):
-        print("Submitting job script finished")
-        print(f"Exit code: {exit_code}")
-        print(f"Exit status: {exit_status}")
 
     def validatePage(self):
 
@@ -238,6 +216,84 @@ class PipelineConfigurationPage(QWizardPage):
         if not config:
             placeholderText = self.custom_config.placeholderText()
             self.custom_config.setText(placeholderText)  
+
+        # invoke the wizard serialize() to store the settings and options being made at this point
+        self.wizard().serialize()
+
+        return True
+
+
+# ---------- Page 4: Job script customization ----------
+
+class JobScriptConfigurationPage(QWizardPage):
+    def __init__(self):
+        super().__init__()
+        self.setTitle("Job Script Configuration")
+
+
+        self.job_script = QLineEdit()
+        self.job_script.setPlaceholderText("job_script.txt")
+
+        self.submit_btn = QPushButton("Submit the generated job script")
+        self.submit_btn.clicked.connect(self.submit_jobs)
+
+        layout = QVBoxLayout()
+
+        self.account = QLineEdit()
+        self.account.setPlaceholderText("rcc-staff")
+        self.reservation = QLineEdit()
+        self.reservation.setPlaceholderText("TestCPP")
+        self.exclusive = QCheckBox("Exclusive nodes")
+        self.ppn = QLineEdit()
+        self.ppn.setPlaceholderText("16")
+        self.mem = QLineEdit()
+        self.mem.setPlaceholderText("64")
+
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Account:"))
+        layout.addWidget(self.account)
+        layout.addWidget(QLabel("Reservation:"))
+        layout.addWidget(self.reservation)
+        layout.addWidget(self.exclusive)
+        layout.addWidget(QLabel("Number of tasks per node:"))
+        layout.addWidget(self.ppn)
+        layout.addWidget(QLabel("Memory per node (GB):"))
+        layout.addWidget(self.mem)
+        layout.addWidget(QLabel("Job script:"))
+        layout.addWidget(self.job_script)
+
+        layout.addSpacing(20)
+        layout.addWidget(self.submit_btn)
+
+        self.setLayout(layout)
+
+        layout.addWidget(QLabel(f"Clicking Next will also generate the job script."))
+
+        # Register fields
+        self.registerField("job_script", self.job_script)
+        self.registerField("account", self.account)
+        self.registerField("reservation", self.reservation)
+        self.registerField("exclusive", self.exclusive)
+        self.registerField("ppn", self.ppn)
+        self.registerField("mem", self.mem)
+
+    def initializePage(self):        
+        pass
+
+    def submit_jobs(self):
+        filename = self.field("job_script")
+        self.generate_job_script(filename)
+
+        self.proc = QProcess(self)
+        self.proc.finished.connect(self.on_finished)
+        self.proc.start("sbatch", [filename])
+
+    def on_finished(self, exit_code, exit_status):
+        print("Submitting job script finished")
+        print(f"Exit code: {exit_code}")
+        print(f"Exit status: {exit_status}")
+
+    def validatePage(self):
 
         script_name = self.job_script.text().strip()
         if not script_name:
@@ -325,7 +381,7 @@ class PipelineConfigurationPage(QWizardPage):
             f.write(content)
 
 
-# ---------- Page 4: Submit job and waiting for results ----------
+# ---------- Page 5: Monitoring submitted jobs and waiting for results ----------
 
 class JobMonitorPage(QWizardPage):
     def __init__(self):
@@ -398,6 +454,7 @@ class NodeTesterWizard(QWizard):
         self.addPage(WelcomePage())
         self.addPage(NodeTestPage())
         self.addPage(PipelineConfigurationPage())
+        self.addPage(JobScriptConfigurationPage())
         self.addPage(JobMonitorPage())
 
     def serialize(self):
