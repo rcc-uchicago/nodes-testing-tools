@@ -62,7 +62,7 @@ source my-env/bin/activate
 pip install -r requirements.txt
 ```
 
-Note: The enviroment contains torch and nvidia* in case you need to run a ML training script with GPU.
+Note: The enviroment contains torch and nvidia in case you need to run a ML training script with GPU.
 
 ### Command-line tools
 
@@ -81,5 +81,39 @@ The configuration file `lammps.yaml` specifies the application executable to run
 Similar configuration files can be created for other applications such as HPCG and HPCC.
 
 The idea is to use this Python script inside the existing CLI tools and job scripts.
+
+You can test a custom application by creating a `custom-app.yaml` file that describes the application and the expected output.
+
+```
+python3 run-tests.py --config-file custom-app.yaml 
+2026-02-06 15:28:29,567 - INFO - Using the configuration file:
+  /project/rcc/users/trung/nodes-testing-tools/custom-app.yaml
+2026-02-06 15:28:29,568 - INFO - Execute:
+2026-02-06 15:28:29,568 - INFO -   module load python/miniforge-25.3.0 && python3 test_numpy.py
+2026-02-06 15:28:30,584 - INFO - Eigenvalue1: Actual = 5.0 Expected = 5.0 absdiff = 0.00000 abstol = 0.001
+2026-02-06 15:28:30,584 - INFO - Eigenvector11: Actual = 0.89442719 Expected = 0.89442719 absdiff = 0.00000 abstol = 0.0001
+2026-02-06 15:28:30,585 - INFO - Eigenvector12: Actual = -0.70710678 Expected = -0.70710678 absdiff = 0.00000 abstol = 0.0001
+2026-02-06 15:28:30,585 - INFO - PASSED
+```
+
+### How to contribute
+
+After cloning the repo, create a new branch, made changes to your branch, commit the changes to your branch and push the branch to the repo
+
+```
+git checkout -b my-contributions
+# made changes to existing files, added new files
+# ...
+git add new_file
+git commit -m "description of the changes in this commit"
+git push --set-upstream origin my-contributions
+```
+
+Then go to the GitHub repo, create a pull request (PR) to merge the branch `my-contributions` to the `main` branch. Assign the reviewers to the PR.
+
+You can keep working on the branch in your local copy (e.g. to address the suggestions from the reviewers), committing the changes to the branch.
+
+When the PR is approved, the admins will merge the PR to the `main` branch.
+
 
 
