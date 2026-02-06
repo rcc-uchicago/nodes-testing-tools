@@ -1,0 +1,23 @@
+---
+  app_binary: "python3"
+  modules_needed: "python/miniforge-25.3.0"
+  nprocs: ""
+  mpiexec: ""
+  mpiexec_numproc_flag: "-np"
+  working_dir: "/project/rcc/users/trung/nodes-testing-tools"
+  input_dir: ""
+  args: "test_numpy.py"
+  extract_output_script: "$working_dir/numpy_extract_output.sh"
+  run_completed_marker: "Completed"
+  expected:
+    Eigenvalue1:
+      value: 5.0
+      abstol: 0.001
+
+    Eigenvector11:
+      value: 0.89442719
+      abstol: 0.0001
+
+    Eigenvector12:
+      value:  -0.70710678
+      abstol: 0.0001
