@@ -27,6 +27,11 @@ def execute(config):
     cmd_str = ""
     if config['modules_needed']:
         cmd_str = f"module load {config['modules_needed']} && "
+    
+    if 'preprocess' in config:
+        cmd_str += f"{config['preprocess']} && "
+        if '$input_dir' in cmd_str:
+            cmd_str = cmd_str.replace("$input_dir", config['input_dir'])
 
     # check if mpiexec/mpirun is used
     if 'mpiexec' in config:
@@ -47,7 +52,8 @@ def execute(config):
             'stdout': p.stdout,
             'stderr': p.stderr,
             'returncode': p.returncode,
-        }
+        } 
+        print(status)
 
         if config['run_completed_marker'] in status['stdout']:
             #print('Run completed')    
