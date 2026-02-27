@@ -25,10 +25,11 @@ echo "Reservation: $reservation_exist"
 if [ -n "$reservation_exist" ]
 then
     scontrol show res $reservation > res_info.txt
-    nodelist=`grep Nodes res_info.txt | awk '{print $1}'| sed 's/Nodes=//g'`
+    #nodelist=`grep Nodes res_info.txt | awk '{print $1}'| sed 's/Nodes=//g'`
     num_nodes=`grep NodeCnt res_info.txt | awk '{print $2}'| sed 's/NodeCnt=//g'`
-    max_cores=`grep CoreCnt res_info.txt | awk '{print $3}'| sed 's/CoreCnt=//g'`
+    total_cores=`grep CoreCnt res_info.txt | awk '{print $3}'| sed 's/CoreCnt=//g'`
 
+    echo "Node list =$nodelist"
     scontrol show node $nodelist > node_info.txt
     real_mem=`grep RealMemory node_info.txt | awk '{print $1}'| sed 's/RealMemory=//g'`
     max_ppn=`grep CPUTot node_info.txt | awk '{print $2}'| sed 's/CPUTot=//g'`
@@ -36,11 +37,6 @@ then
     has_gpu=`grep "gpu:" node_info.txt`
 
     real_mem=$(( real_mem / 1024 ))
-
-    if [ $max_cores -ne $max_ppn ];
-    then
-        echo "Inconsistent core numbers: CoreCnt=$max_cores CPUTot=$max_ppn"
-    fi
 
     gpu_nodes=0
     output="output-cpu-$nodelist.txt"
@@ -75,7 +71,8 @@ then
     sed -i "s/--reservation=Test_CPP/--reservation=$reservation/g" $queue_file
 
     echo "Submitting job script $queue_file.."
-    sbatch --nodelist=$nodelist --ntasks-per-node=$max_cores $queue_file $output
+    echo "  sbatch --nodelist=$nodelist --ntasks-per-node=$max_ppn $queue_file $output"
+    sbatch --nodelist=$nodelist --ntasks-per-node=$max_ppn $queue_file $output
 
     echo "Checking job output log $output for details"
 
