@@ -1,0 +1,154 @@
+gpu_info:
+  name: NVIDIA A100-SXM4-80GB
+  architecture: Ampere
+  memory_gb: 80.0
+  memory_type: HBM2e
+  memory_bandwidth_spec: 2039
+  cuda_capability: '8.0'
+  tensor_cores: 432
+  fp32_tflops_spec: 19.5
+  fp16_tflops_spec: 312
+  bf16_tflops_spec: 312
+
+expected_performance:
+  gemm:
+    fp32:
+      small_4096x4096x4096:
+        min_tflops: 15.0
+        max_tflops: 19.5
+        typical_tflops: 17.0
+      large_8192x8192x8192:
+        min_tflops: 16.0
+        max_tflops: 19.5
+        typical_tflops: 18.0
+      xlarge_16384x16384x16384:
+        min_tflops: 17.0
+        max_tflops: 19.5
+        typical_tflops: 18.5
+    fp16:
+      small_4096x4096x4096:
+        min_tflops: 200.0
+        max_tflops: 280.0
+        typical_tflops: 240.0
+      large_8192x8192x8192:
+        min_tflops: 240.0
+        max_tflops: 300.0
+        typical_tflops: 270.0
+      xlarge_16384x16384x16384:
+        min_tflops: 250.0
+        max_tflops: 312.0
+        typical_tflops: 280.0
+    bfloat16:
+      small_4096x4096x4096:
+        min_tflops: 200.0
+        max_tflops: 280.0
+        typical_tflops: 240.0
+      large_8192x8192x8192:
+        min_tflops: 240.0
+        max_tflops: 300.0
+        typical_tflops: 270.0
+      xlarge_16384x16384x16384:
+        min_tflops: 250.0
+        max_tflops: 312.0
+        typical_tflops: 280.0
+
+  conv2d:
+    fp32:
+      typical_tflops: 15.0
+      min_tflops: 12.0
+      max_tflops: 18.0
+    fp16:
+      typical_tflops: 220.0
+      min_tflops: 180.0
+      max_tflops: 280.0
+    bfloat16:
+      typical_tflops: 220.0
+      min_tflops: 180.0
+      max_tflops: 280.0
+
+  attention:
+    fp32:
+      small_bert_like:
+        min_tflops: 14.0
+        max_tflops: 18.0
+        typical_tflops: 16.0
+      large_gpt_like:
+        min_tflops: 15.0
+        max_tflops: 19.0
+        typical_tflops: 17.0
+    fp16:
+      small_bert_like:
+        min_tflops: 180.0
+        max_tflops: 240.0
+        typical_tflops: 210.0
+      large_gpt_like:
+        min_tflops: 200.0
+        max_tflops: 280.0
+        typical_tflops: 240.0
+      xlarge:
+        min_tflops: 220.0
+        max_tflops: 300.0
+        typical_tflops: 260.0
+    bfloat16:
+      small_bert_like:
+        min_tflops: 180.0
+        max_tflops: 240.0
+        typical_tflops: 210.0
+      large_gpt_like:
+        min_tflops: 200.0
+        max_tflops: 280.0
+        typical_tflops: 240.0
+      xlarge:
+        min_tflops: 220.0
+        max_tflops: 300.0
+        typical_tflops: 260.0
+
+  memory:
+    device_to_device:
+      min_bandwidth_gbs: 1400.0
+      max_bandwidth_gbs: 1935.0
+      typical_bandwidth_gbs: 1700.0
+    host_to_device_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 24.5
+    device_to_host_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 24.5
+    host_to_device_sxm_nvlink:
+      min_bandwidth_gbs: 40.0
+      max_bandwidth_gbs: 55.0
+      typical_bandwidth_gbs: 48.0
+    device_to_host_sxm_nvlink:
+      min_bandwidth_gbs: 40.0
+      max_bandwidth_gbs: 55.0
+      typical_bandwidth_gbs: 48.0
+
+  multi_gpu:
+    nvlink_3_0:
+      all_reduce_bandwidth_gbs:
+        min: 40.0
+        max: 55.0
+        typical: 48.0
+      p2p_bandwidth_gbs:
+        min: 400.0
+        max: 500.0
+        typical: 450.0
+    pcie_gen4:
+      all_reduce_bandwidth_gbs:
+        min: 10.0
+        max: 15.0
+        typical: 12.0
+      p2p_bandwidth_gbs:
+        min: 20.0
+        max: 27.0
+        typical: 24.0
+
+notes:
+  - A100 has 3rd generation Tensor Cores with strong FP16/BF16 performance
+  - SXM variant with NVLink-to-CPU provides 40-55 GB/s host-device bandwidth
+  - PCIe variant limited to PCIe Gen4 bandwidth (~25 GB/s)
+  - NVLink 3.0 provides 600 GB/s bidirectional per GPU (12 links)
+  - Performance assumes no thermal throttling and proper cooling
+  - FP16 and BF16 performance should be nearly identical with Tensor Cores

@@ -1,0 +1,160 @@
+gpu_info:
+  name: NVIDIA B200
+  architecture: Blackwell
+  memory_gb: 192.0
+  memory_type: HBM3e
+  memory_bandwidth_spec: 8000
+  cuda_capability: '10.0'
+  tensor_cores: 5th_generation
+  fp32_tflops_spec: 140
+  fp16_tflops_spec: 2250
+  bf16_tflops_spec: 2250
+  fp8_tflops_spec: 4500
+  fp4_tflops_spec: 9000
+
+expected_performance:
+  gemm:
+    fp32:
+      small_4096x4096x4096:
+        min_tflops: 100.0
+        max_tflops: 130.0
+        typical_tflops: 115.0
+      large_8192x8192x8192:
+        min_tflops: 110.0
+        max_tflops: 140.0
+        typical_tflops: 125.0
+      xlarge_16384x16384x16384:
+        min_tflops: 120.0
+        max_tflops: 140.0
+        typical_tflops: 132.0
+    fp16:
+      small_4096x4096x4096:
+        min_tflops: 1600.0
+        max_tflops: 2000.0
+        typical_tflops: 1800.0
+      large_8192x8192x8192:
+        min_tflops: 1800.0
+        max_tflops: 2200.0
+        typical_tflops: 2000.0
+      xlarge_16384x16384x16384:
+        min_tflops: 1900.0
+        max_tflops: 2250.0
+        typical_tflops: 2100.0
+    bfloat16:
+      small_4096x4096x4096:
+        min_tflops: 1600.0
+        max_tflops: 2000.0
+        typical_tflops: 1800.0
+      large_8192x8192x8192:
+        min_tflops: 1800.0
+        max_tflops: 2200.0
+        typical_tflops: 2000.0
+      xlarge_16384x16384x16384:
+        min_tflops: 1900.0
+        max_tflops: 2250.0
+        typical_tflops: 2100.0
+
+  conv2d:
+    fp32:
+      typical_tflops: 115.0
+      min_tflops: 95.0
+      max_tflops: 135.0
+    fp16:
+      typical_tflops: 1850.0
+      min_tflops: 1600.0
+      max_tflops: 2100.0
+    bfloat16:
+      typical_tflops: 1850.0
+      min_tflops: 1600.0
+      max_tflops: 2100.0
+
+  attention:
+    fp32:
+      small_bert_like:
+        min_tflops: 95.0
+        max_tflops: 125.0
+        typical_tflops: 110.0
+      large_gpt_like:
+        min_tflops: 105.0
+        max_tflops: 135.0
+        typical_tflops: 120.0
+    fp16:
+      small_bert_like:
+        min_tflops: 1400.0
+        max_tflops: 1800.0
+        typical_tflops: 1600.0
+      large_gpt_like:
+        min_tflops: 1500.0
+        max_tflops: 2000.0
+        typical_tflops: 1750.0
+      xlarge:
+        min_tflops: 1600.0
+        max_tflops: 2100.0
+        typical_tflops: 1850.0
+    bfloat16:
+      small_bert_like:
+        min_tflops: 1400.0
+        max_tflops: 1800.0
+        typical_tflops: 1600.0
+      large_gpt_like:
+        min_tflops: 1500.0
+        max_tflops: 2000.0
+        typical_tflops: 1750.0
+      xlarge:
+        min_tflops: 1600.0
+        max_tflops: 2100.0
+        typical_tflops: 1850.0
+
+  memory:
+    device_to_device:
+      min_bandwidth_gbs: 7000.0
+      max_bandwidth_gbs: 8000.0
+      typical_bandwidth_gbs: 7500.0
+    host_to_device_pcie_gen5:
+      min_bandwidth_gbs: 50.0
+      max_bandwidth_gbs: 63.0
+      typical_bandwidth_gbs: 57.0
+    device_to_host_pcie_gen5:
+      min_bandwidth_gbs: 50.0
+      max_bandwidth_gbs: 63.0
+      typical_bandwidth_gbs: 57.0
+    host_to_device_sxm_nvlink:
+      min_bandwidth_gbs: 100.0
+      max_bandwidth_gbs: 140.0
+      typical_bandwidth_gbs: 120.0
+    device_to_host_sxm_nvlink:
+      min_bandwidth_gbs: 100.0
+      max_bandwidth_gbs: 140.0
+      typical_bandwidth_gbs: 120.0
+
+  multi_gpu:
+    nvlink_5_0:
+      all_reduce_bandwidth_gbs:
+        min: 150.0
+        max: 190.0
+        typical: 170.0
+      p2p_bandwidth_gbs:
+        min: 1200.0
+        max: 1600.0
+        typical: 1400.0
+    pcie_gen5:
+      all_reduce_bandwidth_gbs:
+        min: 20.0
+        max: 30.0
+        typical: 25.0
+      p2p_bandwidth_gbs:
+        min: 40.0
+        max: 63.0
+        typical: 52.0
+
+notes:
+  - B200 is Blackwell architecture (announced 2024, available 2025)
+  - 5th generation Tensor Cores with enhanced FP8 and FP4 support
+  - Massive 192 GB HBM3e memory capacity
+  - NVLink 5.0 provides 1.8 TB/s bidirectional bandwidth per GPU
+  - HBM3e provides 8 TB/s memory bandwidth
+  - Designed for large-scale AI training and inference
+  - 2-3x performance improvement over H100
+  - Performance numbers are estimates based on NVIDIA specifications
+  - Actual performance may vary based on final production silicon
+  - Optimized for transformer workloads and large language models

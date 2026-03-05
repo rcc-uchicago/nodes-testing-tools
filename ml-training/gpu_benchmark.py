@@ -13,6 +13,7 @@ import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 import time
 import json
+import yaml
 import argparse
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional
@@ -773,8 +774,8 @@ class GPUBenchmark:
         torch.cuda.empty_cache()
         
         return bandwidth if self.rank == 0 else 0
-    
-    def save_results(self, filename: str = "gpu_benchmark_results.json"):
+
+    def save_results_json(self, filename: str = "gpu_benchmark_results.json"):
         """Save results to JSON file"""
         if self.rank != 0:
             return
@@ -792,6 +793,25 @@ class GPUBenchmark:
         
         with open(filename, 'w') as f:
             json.dump(data, f, indent=2)
+    
+    def save_results(self, filename: str = "gpu_benchmark_results.yaml"):
+        """Save results to YAML file"""
+        if self.rank != 0:
+            return
+            
+        data = {
+            'gpu_info': {
+                'name': self.gpu_name,
+                'memory_gb': float(self.gpu_memory),
+                'cuda_capability': self.cuda_capability,
+                'multi_gpu': self.multi_gpu,
+                'world_size': self.world_size
+            },
+            'results': [asdict(r) for r in self.results]
+        }
+        
+        with open(filename, 'w') as f:
+            yaml.dump(data, f, default_flow_style=False, sort_keys=False)
         
         print(f"\nResults saved to {filename}")
 
@@ -870,8 +890,8 @@ def run_benchmark_distributed(rank, world_size, args):
 def main():
     parser = argparse.ArgumentParser(description='NVIDIA GPU ML Benchmark Suite')
     parser.add_argument('--device', type=int, default=0, help='CUDA device ID (default: 0)')
-    parser.add_argument('--output', type=str, default='gpu_benchmark_results.json', 
-                       help='Output JSON file (default: gpu_benchmark_results.json)')
+    parser.add_argument('--output', type=str, default='gpu_benchmark_results.yaml', 
+                       help='Output YAML file (default: gpu_benchmark_results.yaml)')
     parser.add_argument('--quick', action='store_true', 
                        help='Run quick benchmark (fewer iterations)')
     parser.add_argument('--scale', type=float, default=1.0,

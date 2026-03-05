@@ -1,0 +1,157 @@
+gpu_info:
+  name: NVIDIA H100-SXM5-80GB
+  architecture: Hopper
+  memory_gb: 80.0
+  memory_type: HBM3
+  memory_bandwidth_spec: 3350
+  cuda_capability: '9.0'
+  tensor_cores: 456
+  fp32_tflops_spec: 67
+  fp16_tflops_spec: 989
+  bf16_tflops_spec: 989
+  fp8_tflops_spec: 1979
+
+expected_performance:
+  gemm:
+    fp32:
+      small_4096x4096x4096:
+        min_tflops: 50.0
+        max_tflops: 65.0
+        typical_tflops: 58.0
+      large_8192x8192x8192:
+        min_tflops: 55.0
+        max_tflops: 67.0
+        typical_tflops: 62.0
+      xlarge_16384x16384x16384:
+        min_tflops: 58.0
+        max_tflops: 67.0
+        typical_tflops: 64.0
+    fp16:
+      small_4096x4096x4096:
+        min_tflops: 600.0
+        max_tflops: 800.0
+        typical_tflops: 700.0
+      large_8192x8192x8192:
+        min_tflops: 700.0
+        max_tflops: 900.0
+        typical_tflops: 800.0
+      xlarge_16384x16384x16384:
+        min_tflops: 750.0
+        max_tflops: 989.0
+        typical_tflops: 870.0
+    bfloat16:
+      small_4096x4096x4096:
+        min_tflops: 600.0
+        max_tflops: 800.0
+        typical_tflops: 700.0
+      large_8192x8192x8192:
+        min_tflops: 700.0
+        max_tflops: 900.0
+        typical_tflops: 800.0
+      xlarge_16384x16384x16384:
+        min_tflops: 750.0
+        max_tflops: 989.0
+        typical_tflops: 870.0
+
+  conv2d:
+    fp32:
+      typical_tflops: 55.0
+      min_tflops: 45.0
+      max_tflops: 65.0
+    fp16:
+      typical_tflops: 750.0
+      min_tflops: 650.0
+      max_tflops: 900.0
+    bfloat16:
+      typical_tflops: 750.0
+      min_tflops: 650.0
+      max_tflops: 900.0
+
+  attention:
+    fp32:
+      small_bert_like:
+        min_tflops: 48.0
+        max_tflops: 62.0
+        typical_tflops: 55.0
+      large_gpt_like:
+        min_tflops: 52.0
+        max_tflops: 65.0
+        typical_tflops: 58.0
+    fp16:
+      small_bert_like:
+        min_tflops: 550.0
+        max_tflops: 750.0
+        typical_tflops: 650.0
+      large_gpt_like:
+        min_tflops: 600.0
+        max_tflops: 850.0
+        typical_tflops: 725.0
+      xlarge:
+        min_tflops: 650.0
+        max_tflops: 900.0
+        typical_tflops: 775.0
+    bfloat16:
+      small_bert_like:
+        min_tflops: 550.0
+        max_tflops: 750.0
+        typical_tflops: 650.0
+      large_gpt_like:
+        min_tflops: 600.0
+        max_tflops: 850.0
+        typical_tflops: 725.0
+      xlarge:
+        min_tflops: 650.0
+        max_tflops: 900.0
+        typical_tflops: 775.0
+
+  memory:
+    device_to_device:
+      min_bandwidth_gbs: 2800.0
+      max_bandwidth_gbs: 3350.0
+      typical_bandwidth_gbs: 3100.0
+    host_to_device_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 25.0
+    device_to_host_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 25.0
+    host_to_device_sxm_nvlink:
+      min_bandwidth_gbs: 60.0
+      max_bandwidth_gbs: 85.0
+      typical_bandwidth_gbs: 75.0
+    device_to_host_sxm_nvlink:
+      min_bandwidth_gbs: 60.0
+      max_bandwidth_gbs: 85.0
+      typical_bandwidth_gbs: 75.0
+
+  multi_gpu:
+    nvlink_4_0:
+      all_reduce_bandwidth_gbs:
+        min: 70.0
+        max: 85.0
+        typical: 78.0
+      p2p_bandwidth_gbs:
+        min: 600.0
+        max: 750.0
+        typical: 680.0
+    pcie_gen4:
+      all_reduce_bandwidth_gbs:
+        min: 10.0
+        max: 15.0
+        typical: 12.0
+      p2p_bandwidth_gbs:
+        min: 20.0
+        max: 27.0
+        typical: 24.0
+
+notes:
+  - H100 has 4th generation Tensor Cores with FP8 support
+  - SXM5 variant with NVLink-to-CPU provides 60-85 GB/s host-device bandwidth
+  - PCIe variant limited to PCIe Gen4 bandwidth (~25 GB/s)
+  - NVLink 4.0 provides 900 GB/s bidirectional per GPU (18 links)
+  - HBM3 provides significantly higher memory bandwidth than A100's HBM2e
+  - Performance assumes no thermal throttling and proper cooling
+  - FP16 and BF16 performance should be nearly identical
+  - Transformer Engine can leverage FP8 for even higher performance

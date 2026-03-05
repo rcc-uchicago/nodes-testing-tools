@@ -1,0 +1,140 @@
+gpu_info:
+  name: NVIDIA L40S
+  architecture: Ada Lovelace
+  memory_gb: 48.0
+  memory_type: GDDR6
+  memory_bandwidth_spec: 864
+  cuda_capability: '8.9'
+  tensor_cores: 568
+  fp32_tflops_spec: 91.6
+  fp16_tflops_spec: 362
+  bf16_tflops_spec: 362
+
+expected_performance:
+  gemm:
+    fp32:
+      small_4096x4096x4096:
+        min_tflops: 70.0
+        max_tflops: 88.0
+        typical_tflops: 80.0
+      large_8192x8192x8192:
+        min_tflops: 75.0
+        max_tflops: 91.6
+        typical_tflops: 84.0
+      xlarge_16384x16384x16384:
+        min_tflops: 78.0
+        max_tflops: 91.6
+        typical_tflops: 86.0
+    fp16:
+      small_4096x4096x4096:
+        min_tflops: 250.0
+        max_tflops: 320.0
+        typical_tflops: 285.0
+      large_8192x8192x8192:
+        min_tflops: 280.0
+        max_tflops: 350.0
+        typical_tflops: 315.0
+      xlarge_16384x16384x16384:
+        min_tflops: 290.0
+        max_tflops: 362.0
+        typical_tflops: 330.0
+    bfloat16:
+      small_4096x4096x4096:
+        min_tflops: 250.0
+        max_tflops: 320.0
+        typical_tflops: 285.0
+      large_8192x8192x8192:
+        min_tflops: 280.0
+        max_tflops: 350.0
+        typical_tflops: 315.0
+      xlarge_16384x16384x16384:
+        min_tflops: 290.0
+        max_tflops: 362.0
+        typical_tflops: 330.0
+
+  conv2d:
+    fp32:
+      typical_tflops: 75.0
+      min_tflops: 65.0
+      max_tflops: 88.0
+    fp16:
+      typical_tflops: 280.0
+      min_tflops: 240.0
+      max_tflops: 340.0
+    bfloat16:
+      typical_tflops: 280.0
+      min_tflops: 240.0
+      max_tflops: 340.0
+
+  attention:
+    fp32:
+      small_bert_like:
+        min_tflops: 68.0
+        max_tflops: 85.0
+        typical_tflops: 76.0
+      large_gpt_like:
+        min_tflops: 72.0
+        max_tflops: 88.0
+        typical_tflops: 80.0
+    fp16:
+      small_bert_like:
+        min_tflops: 230.0
+        max_tflops: 300.0
+        typical_tflops: 265.0
+      large_gpt_like:
+        min_tflops: 250.0
+        max_tflops: 330.0
+        typical_tflops: 290.0
+      xlarge:
+        min_tflops: 270.0
+        max_tflops: 350.0
+        typical_tflops: 310.0
+    bfloat16:
+      small_bert_like:
+        min_tflops: 230.0
+        max_tflops: 300.0
+        typical_tflops: 265.0
+      large_gpt_like:
+        min_tflops: 250.0
+        max_tflops: 330.0
+        typical_tflops: 290.0
+      xlarge:
+        min_tflops: 270.0
+        max_tflops: 350.0
+        typical_tflops: 310.0
+
+  memory:
+    device_to_device:
+      min_bandwidth_gbs: 750.0
+      max_bandwidth_gbs: 864.0
+      typical_bandwidth_gbs: 810.0
+    host_to_device_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 24.5
+    device_to_host_pcie_gen4:
+      min_bandwidth_gbs: 22.0
+      max_bandwidth_gbs: 27.0
+      typical_bandwidth_gbs: 24.5
+
+  multi_gpu:
+    pcie_gen4:
+      all_reduce_bandwidth_gbs:
+        min: 10.0
+        max: 15.0
+        typical: 12.5
+      p2p_bandwidth_gbs:
+        min: 20.0
+        max: 27.0
+        typical: 24.0
+    note: L40S does not have NVLink support
+
+notes:
+  - L40S is based on Ada Lovelace architecture (RTX 40 series)
+  - Uses GDDR6 memory instead of HBM (lower bandwidth than A100/H100)
+  - Very high FP32 performance relative to tensor performance
+  - No NVLink support - PCIe Gen4 only for multi-GPU
+  - 4th generation Tensor Cores similar to H100
+  - Good for mixed precision training and inference
+  - Strong for workloads requiring high FP32 compute
+  - Memory bandwidth is lower than datacenter HBM GPUs
