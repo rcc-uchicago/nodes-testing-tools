@@ -1,19 +1,23 @@
 ---
   app_binary:
-    - "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools/tmp/mp-gadget/build/MP-Gadget/genic/MP-GenIC"
-    - "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools/tmp/mp-gadget/build/MP-Gadget/gadget/MP-Gadget"
+    - "$working_dir/tmp/mp-gadget/build/MP-Gadget/genic/MP-GenIC"
+    - "$working_dir/tmp/mp-gadget/build/MP-Gadget/gadget/MP-Gadget"
   modules_needed: "mpich/4.1.2+gcc-12.2.0 gsl/2.7"
   preprocess:
-          - "ulimit -l unlimited"
-          - "cd $input_dir"
-          - "total_cpus_per_node=$SLURM_NTASKS_PER_NODE"
-          - &mpiexec_ppn "ppn=4"
-          - "nt=$(( total_cpus_per_node / ppn ))"
-          - "export OMP_NUM_THREADS=$nt"
-  input_dir: "./tmp/mp-gadget/tests/dm-only"
-  param_files:
-          - "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools/tmp/mp-gadget/tests/dm-only/paramfile.genic"
-          - "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools/tmp/mp-gadget/tests/dm-only/paramfile.gadget"
+    - "ulimit -l unlimited"
+    - "total_cpus_per_node=$SLURM_NTASKS_PER_NODE"
+    - &mpiexec_ppn "ppn=4"
+    - "nt=$(( total_cpus_per_node / ppn ))"
+    - "export OMP_NUM_THREADS=$nt"
+    - "echo \"total_cpus_per_node=$total_cpus_per_node\" > $working_dir/tmp/metadata_mpgadget.txt"
+    - "echo \"ppn=$ppn\" >> $working_dir/tmp/metadata_mpgadget.txt"
+    - "echo \"nt=$nt\" >> $working_dir/tmp/metadata_mpgadget.txt "
+    - "cd $working_dir/$input_dir"
+  input_dir: "tmp/mp-gadget/tests/dm-only"
+  working_dir: "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools"
+  args:
+    - "$working_dir/$input_dir/paramfile.genic"
+    - "$working_dir/$input_dir/paramfile.gadget"
   nprocs: "4"
   mpiexec: "mpirun"
   mpiexec_numproc_flag: "-np"
@@ -21,28 +25,28 @@
   mpiexec_ppn_flag: *mpiexec_ppn
   mpiexec_bind_flag: "--bind-to core"
   timeout_value: 2500
-  extract_output_script: "./mpgadget_extract_output.sh"
+  extract_output_script: "$working_dir/mpgadget_extract_output.sh"
   run_completed_marker: " Time: 1 (1c00000000000)"
   expected:
     PowerSpectra_1k:
       value: 0.125664
-      abstol: 1.0e-3
+      abstol: 1.0e-6
     PowerSpectra_1P:
-      value: 3818.43
-      abstol: 1.0e-1
+      value: 3818.4
+      abstol: 1.0e-6
     PowerSpectra_1N:
       value: 6
-      abstol: 1.0e-3
+      abstol: 1.0e-6
     PowerSpectra_1P(z=0):
-      value: 3818.43
-      abstol: 1.0e-1
+      value: 3818.4
+      abstol: 1.0e-6
     RedShift:
       value: 0
-      abstol: 1.0e-3
+      abstol: 1.0e-6
     Nf:
       value: 1310720
-      abstol: 1.0e-3
-    TPS:
-      value: 0.277 
-      reltol: 10.0 
+      abstol: 1.0e-6
+    TPS: 
+      value: 3.6
+      reltol: 2.0 
 

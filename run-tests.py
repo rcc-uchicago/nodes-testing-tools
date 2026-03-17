@@ -31,33 +31,48 @@ def execute(config):
     if 'preprocess' in config:
         for cmd_i in config['preprocess']:
             cmd_i = cmd_i.replace("$input_dir", config['input_dir'])
+            cmd_i = cmd_i.replace("$working_dir", config['working_dir'])
             cmd_str += cmd_i + " && "
 
-    if(len(config['app_binary'])>0):
-            for i,appbin in enumerate(config['app_binary']):
-                if 'mpitime' in config:
-                    cmd_str += config['mpitime'] +" "
-                if 'mpiexec' in config:
-                    cmd_str += config['mpiexec'] + " "
-                if 'mpiexec_numproc_flag' in config:
-                    cmd_str += config['mpiexec_numproc_flag'] + " "
-                if 'nprocs' in config:
-                    cmd_str += config['nprocs']
-                if 'mpiexec_ppn_flag' in config:
-                    cmd_str += "-" + config['mpiexec_ppn_flag'] + " "
-                if 'mpiexec_bind_flag' in config:
-                    cmd_str += config['mpiexec_bind_flag'] + " "
-                cmd_str += appbin + " "
-                if 'args' in config:
-                    args = config['args']
-                    if 'input_dir' in config:
-                        args = config['args'].replace("$input_dir", config['input_dir'])
-                    cmd_str += args
-                if 'param_files' in config:
-                    cmd_str += " " + config["param_files"][i]
-                cmd_str += " && "
-            cmd_str = cmd_str[:-4] # to remove extra " && "
-    
+    # if multiple app files are used
+    if isinstance(config['app_binary'],list):
+        for i,appbin in enumerate(config['app_binary']):
+            if 'mpitime' in config:
+                cmd_str += config['mpitime'] +" "
+            # check if mpiexec/mpirun is used
+            if 'mpiexec' in config:
+                cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+            if 'mpiexec_ppn_flag' in config:
+                cmd_str += "-" + config['mpiexec_ppn_flag'] + " "
+            if 'mpiexec_bind_flag' in config:
+                cmd_str += config['mpiexec_bind_flag'] + " "
+
+            appbin = appbin.replace("$working_dir",config['working_dir'])
+            cmd_str += appbin + " "
+            
+            if 'args' in config:
+                args = config['args'][i]
+                args = args.replace("$working_dir",config['working_dir'])
+                args = args.replace("$input_dir",config['input_dir'])
+                cmd_str += args
+
+            cmd_str += " && "
+        cmd_str = cmd_str[:-4] # to remove extra " && "
+    else:
+        # check if mpiexec/mpirun is used
+        if 'mpiexec' in config:
+            cmd_str += config['mpiexec'] + " "+ cmd_str + config['mpiexec_numproc_flag'] + " " + cmd_str + config['nprocs'] + " "
+        
+        appbin = appbin.replace("$working_dir",config['working_dir'])
+        cmd_str += appbin + " " 
+        
+        if 'args' in config:
+                args = config['args']
+                args = args.replace("$working_dir",config['working_dir'])
+                args = args.replace("$input_dir",config['input_dir'])
+                cmd_str += args
+
+    # multiple runs may need larger timeout value
     if 'timeout_value' in config:
         timeout_value = config["timeout_value"]
     else:
