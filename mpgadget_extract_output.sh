@@ -8,18 +8,18 @@
 
 # get values from the file that corresponds to output to the terminal
 filetmp=$1
-n=$(grep -n ", Time: 1 (1c00000000000)" $filetmp)
+n=$(grep -n ", Time: 1 (1c00000000000)" "$filetmp")
 Redshift=$(echo "$n" | awk '{print substr($11, 1, length($11)-1)}')
 Nf=$(echo "$n" | awk '{print substr($14, 1, length($14)-1)}')
 Nf=$((10#$Nf)) 
 
 # get timestep/s (TPS) from the cpu.txt file
-filecpu=$"tmp/mp-gadget/tests/dm-only/output/cpu.txt"
-TPS=$(grep Step $filecpu | tail -n1 | sed 's/,//g' |  awk '{print(($2/$10)) }')
+filecpu="tmp/mp-gadget/tests/dm-only/output/cpu.txt"
+TPS=$(grep Step "$filecpu" | tail -n1 | sed 's/,//g' |  awk '{print(($2/$10)) }')
 
 # get values from the power-spectrum file
-filepw=$"tmp/mp-gadget/tests/dm-only/output/powerspectrum-1.0000.txt"
-Powspec=$(awk 'NR==4{print}' $filepw)
+filepw="tmp/mp-gadget/tests/dm-only/output/powerspectrum-1.0000.txt"
+Powspec=$(awk 'NR==4{print}' "$filepw")
 Powspec1=$(echo "$Powspec" | awk '{print$1}')
 Powspec2=$(echo "$Powspec" | awk '{print$2}')
 Powspec3=$(echo "$Powspec" | awk '{print$3}')

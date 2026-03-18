@@ -29,16 +29,22 @@ def execute(config):
         cmd_str = f"module load {config['modules_needed']} && "
     
     if 'preprocess' in config:
-        for cmd_i in config['preprocess']:
-            cmd_i = cmd_i.replace("$input_dir", config['input_dir'])
-            cmd_i = cmd_i.replace("$working_dir", config['working_dir'])
-            cmd_str += cmd_i + " && "
+        if isinstance(config['preprocess'], str):
+            cmd_str += f"{config['preprocess']} && "
+            if '$input_dir' in cmd_str:
+                cmd_str = cmd_str.replace("$input_dir", config['input_dir'])
+
+        else:
+            for cmd_i in config['preprocess']:
+                cmd_i = cmd_i.replace("$input_dir", config['input_dir'])
+                cmd_i = cmd_i.replace("$working_dir", config['working_dir'])
+                cmd_str += cmd_i + " && "
 
     # if multiple app files are used
-    if isinstance(config['app_binary'],list):
+    if isinstance(config['app_binary'], list):
         for i,appbin in enumerate(config['app_binary']):
-            if 'mpitime' in config:
-                cmd_str += config['mpitime'] +" "
+            if 'time_command' in config:
+                cmd_str += config['time_command'] +" "
             # check if mpiexec/mpirun is used
             if 'mpiexec' in config:
                 cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
@@ -52,8 +58,8 @@ def execute(config):
             
             if 'args' in config:
                 args = config['args'][i]
-                args = args.replace("$working_dir",config['working_dir'])
-                args = args.replace("$input_dir",config['input_dir'])
+                args = args.replace("$working_dir", config['working_dir'])
+                args = args.replace("$input_dir", config['input_dir'])
                 cmd_str += args
 
             cmd_str += " && "
@@ -61,15 +67,16 @@ def execute(config):
     else:
         # check if mpiexec/mpirun is used
         if 'mpiexec' in config:
-            cmd_str += config['mpiexec'] + " "+ cmd_str + config['mpiexec_numproc_flag'] + " " + cmd_str + config['nprocs'] + " "
+            cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
         
+        appbin = config['app_binary']
         appbin = appbin.replace("$working_dir",config['working_dir'])
         cmd_str += appbin + " " 
         
         if 'args' in config:
                 args = config['args']
-                args = args.replace("$working_dir",config['working_dir'])
-                args = args.replace("$input_dir",config['input_dir'])
+                args = args.replace("$working_dir", config['working_dir'])
+                args = args.replace("$input_dir", config['input_dir'])
                 cmd_str += args
 
     # multiple runs may need larger timeout value
@@ -88,8 +95,9 @@ def execute(config):
             'stderr': p.stderr,
             'returncode': p.returncode,
         } 
-        #print(status)
-        print("subprocess finished, with stderr:\n", status['stderr'], "\nand with return code: ", status['returncode'])
+        
+        logging.info(f"stderr:")
+        logging.info(f"  {status['stderr']}")
 
         if config['run_completed_marker'] in status['stdout']:
             #print('Run completed')    

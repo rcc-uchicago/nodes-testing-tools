@@ -21,7 +21,7 @@
   nprocs: "4"
   mpiexec: "mpirun"
   mpiexec_numproc_flag: "-np"
-  mpitime: "time"
+  time_command: "time"
   mpiexec_ppn_flag: *mpiexec_ppn
   mpiexec_bind_flag: "--bind-to core"
   timeout_value: 2500
@@ -47,6 +47,6 @@
       value: 1310720
       abstol: 1.0e-6
     TPS: 
-      value: 3.6
+      value: 3.59
       reltol: 2.0 
 
