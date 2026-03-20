@@ -9,8 +9,8 @@
 # get values from the file that corresponds to output to the terminal
 filetmp=$1
 n=$(grep -n ", Time: 1 (1c00000000000)" "$filetmp")
-Redshift=$(echo "$n" | awk '{print substr($11, 1, length($11)-1)}')
-Nf=$(echo "$n" | awk '{print substr($14, 1, length($14)-1)}')
+Redshift=$(echo "$n" | sed 's/,//g' | awk '{print$11}')
+Nf=$(echo "$n" | sed 's/,//g' | awk '{print$14}')
 Nf=$((10#$Nf)) 
 
 # get timestep/s (TPS) from the cpu.txt file
