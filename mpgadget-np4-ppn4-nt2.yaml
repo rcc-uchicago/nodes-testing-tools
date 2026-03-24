@@ -1,0 +1,52 @@
+---
+  app_binary:
+    - "$working_dir/tmp/mp-gadget/build/MP-Gadget/genic/MP-GenIC"
+    - "$working_dir/tmp/mp-gadget/build/MP-Gadget/gadget/MP-Gadget"
+  modules_needed: "mpich/4.1.2+gcc-12.2.0 gsl/2.7"
+  preprocess:
+    - "ulimit -l unlimited"
+    - "total_cpus_per_node=$SLURM_NTASKS_PER_NODE"
+    - &mpiexec_ppn "ppn=4"
+    - "nt=$(( total_cpus_per_node / ppn ))"
+    - "export OMP_NUM_THREADS=$nt"
+    - "echo \"total_cpus_per_node=$total_cpus_per_node\" > $working_dir/tmp/metadata_mpgadget.txt"
+    - "echo \"ppn=$ppn\" >> $working_dir/tmp/metadata_mpgadget.txt"
+    - "echo \"nt=$nt\" >> $working_dir/tmp/metadata_mpgadget.txt "
+    - "cd $working_dir/$input_dir"
+  input_dir: "tmp/mp-gadget/tests/dm-only"
+  working_dir: "/project/rcc/users/afrancis2/RCCprojects/nodes-testing-tools"
+  args:
+    - "$working_dir/$input_dir/paramfile.genic"
+    - "$working_dir/$input_dir/paramfile.gadget"
+  nprocs: "4"
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "-np"
+  time_command: "time"
+  mpiexec_ppn_flag: *mpiexec_ppn
+  mpiexec_bind_flag: "--bind-to core"
+  timeout_value: 2500
+  extract_output_script: "$working_dir/mpgadget_extract_output.sh"
+  run_completed_marker: " Time: 1 (1c00000000000)"
+  expected:
+    PowerSpectra_1k:
+      value: 0.125664
+      abstol: 1.0e-6
+    PowerSpectra_1P:
+      value: 3818.4
+      abstol: 1.0e-6
+    PowerSpectra_1N:
+      value: 6
+      abstol: 1.0e-6
+    PowerSpectra_1P(z=0):
+      value: 3818.4
+      abstol: 1.0e-6
+    RedShift:
+      value: 0
+      abstol: 1.0e-6
+    Nf:
+      value: 1310720
+      abstol: 1.0e-6
+    TPS: 
+      value: 3.59
+      reltol: 2.0 
+

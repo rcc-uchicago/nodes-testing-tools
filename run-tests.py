@@ -29,31 +29,75 @@ def execute(config):
         cmd_str = f"module load {config['modules_needed']} && "
     
     if 'preprocess' in config:
-        cmd_str += f"{config['preprocess']} && "
-        if '$input_dir' in cmd_str:
-            cmd_str = cmd_str.replace("$input_dir", config['input_dir'])
+        if isinstance(config['preprocess'], str):
+            cmd_str += f"{config['preprocess']} && "
+            if '$input_dir' in cmd_str:
+                cmd_str = cmd_str.replace("$input_dir", config['input_dir'])
 
-    # check if mpiexec/mpirun is used
-    if 'mpiexec' in config:
-        if config['mpiexec']:
+        else:
+            for cmd_i in config['preprocess']:
+                cmd_i = cmd_i.replace("$input_dir", config['input_dir'])
+                cmd_i = cmd_i.replace("$working_dir", config['working_dir'])
+                cmd_str += cmd_i + " && "
+
+    # if multiple app files are used
+    if isinstance(config['app_binary'], list):
+        for i,appbin in enumerate(config['app_binary']):
+            if 'time_command' in config:
+                cmd_str += config['time_command'] +" "
+            # check if mpiexec/mpirun is used
+            if 'mpiexec' in config:
+                cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+            if 'mpiexec_ppn_flag' in config:
+                cmd_str += "-" + config['mpiexec_ppn_flag'] + " "
+            if 'mpiexec_bind_flag' in config:
+                cmd_str += config['mpiexec_bind_flag'] + " "
+
+            appbin = appbin.replace("$working_dir",config['working_dir'])
+            cmd_str += appbin + " "
+            
+            if 'args' in config:
+                args = config['args'][i]
+                args = args.replace("$working_dir", config['working_dir'])
+                args = args.replace("$input_dir", config['input_dir'])
+                cmd_str += args
+
+            cmd_str += " && "
+        cmd_str = cmd_str[:-4] # to remove extra " && "
+    else:
+        # check if mpiexec/mpirun is used
+        if 'mpiexec' in config:
             cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+        
+        appbin = config['app_binary']
+        appbin = appbin.replace("$working_dir",config['working_dir'])
+        cmd_str += appbin + " " 
+        
+        if 'args' in config:
+                args = config['args']
+                args = args.replace("$working_dir", config['working_dir'])
+                args = args.replace("$input_dir", config['input_dir'])
+                cmd_str += args
 
-    args = ""
-    if 'input_dir' in config:
-        args = config['args'].replace("$input_dir", config['input_dir'])
+    # multiple runs may need larger timeout value
+    if 'timeout_value' in config:
+        timeout_value = config["timeout_value"]
+    else:
+        timeout_value = 60
 
-    cmd_str += config['app_binary'] + " " + args
     logging.info(f"Execute:")
     logging.info(f"  {cmd_str}")
     try:
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=60)
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout_value)
         status = { 
             'cmd_str': cmd_str,
             'stdout': p.stdout,
             'stderr': p.stderr,
             'returncode': p.returncode,
         } 
-        print(status)
+        
+        logging.info(f"stderr:")
+        logging.info(f"  {status['stderr']}")
 
         if config['run_completed_marker'] in status['stdout']:
             #print('Run completed')    
@@ -147,7 +191,7 @@ if __name__ == "__main__":
         expected_value = config['expected'][quantity]['value']
         actual_value = status['output_results'][quantity]['value']
         absdiff = np.abs(np.float64(expected_value) - np.float64(actual_value))
-        reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
+        #reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
 
         if 'abstol' in config['expected'][quantity]:
             abstol = np.float64(config['expected'][quantity]['abstol'])
@@ -158,6 +202,7 @@ if __name__ == "__main__":
 
         if 'reltol' in config['expected'][quantity]:
             reltol = np.float64(config['expected'][quantity]['reltol'])
+            reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
             logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} reldiff = {reldiff:.3f} reltol = {reltol}")
             if reldiff > reltol:
                 passed = False
