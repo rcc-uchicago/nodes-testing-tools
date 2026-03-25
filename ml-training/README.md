@@ -596,10 +596,9 @@ Pre-defined performance ranges for each GPU architecture:
 ### Documentation Files
 
 - `README.md` - This file, comprehensive usage guide
-- `JSON_YAML_GUIDE.md` - Detailed guide for format usage
+- `PERFORMANCE_METHODOLOGY.md` - Explanation of performance metrics
 - `MEMORY_COPY_TYPES.md` - Explanation of different memory copy types
 - `PROFILING_GUIDE.md` - Guide for profiling real PyTorch code with Nsight tools
-- `COMPLETE_SUMMARY.md` - Complete summary of all tools and features
 
 ### Additional Tools
 
