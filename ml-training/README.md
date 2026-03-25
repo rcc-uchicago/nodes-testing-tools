@@ -174,8 +174,6 @@ python convert_format.py *.json --batch --to yaml
 python convert_format.py *.yaml --batch --to json
 ```
 
-See `JSON_YAML_GUIDE.md` for detailed format usage and best practices.
-
 ### Comparing Results Against Expected Performance
 
 Validate your benchmark results against expected values for each GPU architecture:
@@ -244,14 +242,13 @@ Individual parameters override the scale factor:
 2. **Benchmark vs Real Training Speedup**:
    - **Pure GEMM Benchmark**: 15-20× speedup FP32 → FP16 (this benchmark)
    - **Real ML Training**: 2-4× speedup FP32 → FP16 (typical)
-   - **Why the difference?**: Real training includes non-GEMM operations (LayerNorm, activations, data loading, communication) that don't benefit from Tensor Cores. See `WHY_REAL_TRAINING_IS_SLOWER.md` for details.
+   - **Why the difference?**: Real training includes non-GEMM operations (LayerNorm, activations, data loading, communication) that don't benefit from Tensor Cores. 
 
 3. **GPU-to-GPU Transfer Bandwidth**:
    - Measures **end-to-end bandwidth** (memory read → interconnect → memory write)
    - **NOT just NVLink capacity** - includes memory subsystem bottlenecks
    - Expected: 25-30% of NVLink specification
    - Example: NVLink 5.0 (1,800 GB/s spec) → 450-600 GB/s measured (bidirectional)
-   - See `NVLINK_BANDWIDTH_REALITY.md` and `HBM_BANDWIDTH_REALITY.md` for detailed explanations
 
 ### Single GPU Performance
 
@@ -381,13 +378,11 @@ Individual parameters override the scale factor:
 - Memory read/write bottleneck: HBM sequential access limited to 400-600 GB/s
 - Protocol overhead: ~10-15%
 - Not all HBM stacks active for sequential transfers
-- See `NVLINK_BANDWIDTH_REALITY.md` for detailed explanation
 
 **Why All-Reduce is lower than GPU-to-GPU:**
 - Ring algorithm overhead: 2×(N-1) steps for N GPUs
 - Message size effect: 100MB messages are latency-bound (8-12% of P2P bandwidth)
 - Large messages (1GB+) achieve 70-85% of P2P bandwidth
-- See `ALL_REDUCE_ALGORITHMS.md` for algorithm details
 
 #### PCIe Performance
 
@@ -593,13 +588,6 @@ Pre-defined performance ranges for each GPU architecture:
 - `expected_performance_B200.yaml`
 - `expected_performance_B300.yaml`
 
-### Documentation Files
-
-- `README.md` - This file, comprehensive usage guide
-- `PERFORMANCE_METHODOLOGY.md` - Explanation of performance metrics
-- `MEMORY_COPY_TYPES.md` - Explanation of different memory copy types
-- `PROFILING_GUIDE.md` - Guide for profiling real PyTorch code with Nsight tools
-
 ### Additional Tools
 
 - `example_train_with_profiling.py` - Example PyTorch training with profiling markers
@@ -738,7 +726,6 @@ python gpu_benchmark.py --matmul-size 2048 --batch-size 8 --seq-length 256
 - Fixed by explicit device_id mapping in init_process_group
 - If still occurring, enable debug output: `NCCL_DEBUG=INFO python gpu_benchmark.py --multi-gpu`
 - Check GPU topology is correctly detected: `nvidia-smi topo -m`
-- See `FIXING_NCCL_DEVICE_MAPPING.md` for detailed troubleshooting
 
 **Multi-GPU test shows low bandwidth**
 - Check GPU topology: `nvidia-smi topo -m`
@@ -851,8 +838,6 @@ python convert_format.py *.json --batch --to yaml
 - Auto-detection of formats
 - Quiet mode for scripting
 
-See `JSON_YAML_GUIDE.md` for detailed documentation.
-
 ### Result Comparison Tool (`compare_results.py`)
 
 **Purpose:** Validate benchmark results against expected performance
@@ -895,45 +880,6 @@ python check_multi_gpu.py
 - GPU topology (NVLink vs PCIe)
 - Basic multi-GPU operations
 - Distributed initialization
-
-### Profiling and Analysis Tools
-
-**For profiling real PyTorch training code:**
-- `PROFILING_GUIDE.md` - Comprehensive guide for Nsight Systems/Compute
-- `example_train_with_profiling.py` - Example training script with NVTX markers
-- `extract_metrics.py` - Parse and extract metrics from Nsight profiler outputs
-
-**For memory bandwidth analysis:**
-- `measure_d2d_bandwidth.py` - Measure device-to-device bandwidth
-- `MEMORY_COPY_TYPES.md` - Detailed explanation of different memory copy types
-
-## Documentation Files
-
-### Core Guides
-- **`README.md`** - This file, comprehensive usage guide
-- **`JSON_YAML_GUIDE.md`** - Format usage, conversion examples, best practices
-- **`PERFORMANCE_METHODOLOGY.md`** - How expected values were calculated, sources cited
-
-### Understanding Benchmarks
-- **`CONV2D_ATTENTION_MATH.md`** - Detailed FLOPS calculations for Conv2D and Attention
-- **`ATTENTION_TWO_MATMULS_EXPLAINED.md`** - Why attention has two matrix multiplications with same FLOPS
-- **`TENSOR_CORE_ACTIVATION.md`** - How benchmarks automatically use Tensor Cores
-- **`WHY_REAL_TRAINING_IS_SLOWER.md`** - Why real ML training doesn't get 15-20× speedup from FP16
-
-### Multi-GPU Deep Dives
-- **`ALL_REDUCE_ALGORITHMS.md`** - Ring vs Tree vs Recursive Doubling algorithms explained
-- **`DDP_NCCL_NVLINK_EXPLAINED.md`** - How PyTorch DDP automatically uses NCCL and NVLink
-- **`FIXING_NCCL_DEVICE_MAPPING.md`** - Fixing device_id warnings and preventing hangs
-
-### Bandwidth Reality
-- **`NVLINK_BANDWIDTH_REALITY.md`** - Why GPU-to-GPU achieves 25-30% of NVLink spec
-- **`HBM_BANDWIDTH_REALITY.md`** - Why 8 TB/s HBM only gives 400-600 GB/s for P2P transfers
-- **`L2_CACHE_IN_P2P_TRANSFERS.md`** - Why L2 cache is bypassed in GPU-to-GPU transfers
-- **`MEMORY_COPY_TYPES.md`** - Clarification of D2D types with diagrams
-
-### Additional Resources
-- **`PROFILING_GUIDE.md`** - Nsight Systems/Compute usage for real PyTorch code
-- **`COMPLETE_SUMMARY.md`** - Overview of entire suite
 
 ## License
 
