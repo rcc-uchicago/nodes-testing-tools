@@ -1,0 +1,347 @@
+gpu_info:
+  name: NVIDIA B200
+  memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  multi_gpu: true
+  world_size: 4
+results:
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (4096x4096) @ (4096x4096)
+  dtype: float32
+  shape: 4096x4096x4096
+  throughput_tflops: 63.534827967569306
+  time_ms: 2.1632065100129694
+  memory_bandwidth_gb_s: 93.0685956556191
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (4096x4096) @ (4096x4096)
+  dtype: float16
+  shape: 4096x4096x4096
+  throughput_tflops: 1447.284927308552
+  time_ms: 0.09496330050751567
+  memory_bandwidth_gb_s: 1060.0231401185683
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (4096x4096) @ (4096x4096)
+  dtype: bfloat16
+  shape: 4096x4096x4096
+  throughput_tflops: 1526.0448307190004
+  time_ms: 0.09006219916045666
+  memory_bandwidth_gb_s: 1117.708616249268
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (8192x8192) @ (8192x8192)
+  dtype: float32
+  shape: 8192x8192x8192
+  throughput_tflops: 63.973478971386896
+  time_ms: 17.186991319758818
+  memory_bandwidth_gb_s: 46.85557541849627
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (8192x8192) @ (8192x8192)
+  dtype: float16
+  shape: 8192x8192x8192
+  throughput_tflops: 1506.9589760230579
+  time_ms: 0.729622800135985
+  memory_bandwidth_gb_s: 551.864859383444
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (8192x8192) @ (8192x8192)
+  dtype: bfloat16
+  shape: 8192x8192x8192
+  throughput_tflops: 1425.1179813375713
+  time_ms: 0.771523229777813
+  memory_bandwidth_gb_s: 521.8937919937395
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (16384x16384) @ (16384x16384)
+  dtype: float16
+  shape: 16384x16384x16384
+  throughput_tflops: 1453.0602732531586
+  time_ms: 6.053494947263971
+  memory_bandwidth_gb_s: 266.06328245602265
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: GEMM
+  operation: MatMul (16384x16384) @ (16384x16384)
+  dtype: bfloat16
+  shape: 16384x16384x16384
+  throughput_tflops: 1503.0547168735588
+  time_ms: 5.852144252276048
+  memory_bandwidth_gb_s: 275.2175384900315
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Conv2D
+  operation: Conv2D B64xC64x224x224 K3
+  dtype: float32
+  shape: 64x64x224x224
+  throughput_tflops: 145.3352465747526
+  time_ms: 1.6290616197511554
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Conv2D
+  operation: Conv2D B64xC64x224x224 K3
+  dtype: float16
+  shape: 64x64x224x224
+  throughput_tflops: 179.29781268707742
+  time_ms: 1.3204850000329316
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Conv2D
+  operation: Conv2D B128xC128x112x112 K3
+  dtype: float16
+  shape: 128x128x112x112
+  throughput_tflops: 349.07258430403704
+  time_ms: 1.356509120669216
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Conv2D
+  operation: Conv2D B256xC256x56x56 K3
+  dtype: float16
+  shape: 256x256x56x56
+  throughput_tflops: 575.618470174347
+  time_ms: 1.6452569502871484
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Attention
+  operation: MHA B32 H12 S512 D64
+  dtype: float32
+  shape: 32x12x512x64
+  throughput_tflops: 28.581377306481983
+  time_ms: 0.9016291797161102
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Attention
+  operation: MHA B32 H12 S512 D64
+  dtype: float16
+  shape: 32x12x512x64
+  throughput_tflops: 87.43208850214981
+  time_ms: 0.29474080074578524
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Attention
+  operation: MHA B16 H32 S2048 D128
+  dtype: float16
+  shape: 16x32x2048x128
+  throughput_tflops: 103.69317143872257
+  time_ms: 10.603510458022356
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Attention
+  operation: MHA B16 H32 S2048 D128
+  dtype: bfloat16
+  shape: 16x32x2048x128
+  throughput_tflops: 103.86448659363242
+  time_ms: 10.586020918563008
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Attention
+  operation: MHA B8 H40 S4096 D128
+  dtype: float16
+  shape: 8x40x4096x128
+  throughput_tflops: 122.26732366581562
+  time_ms: 22.48171454994008
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Device Copy 512 MB
+  dtype: float32
+  shape: '134217728'
+  throughput_tflops: 0.0
+  time_ms: 0.17018121085129678
+  memory_bandwidth_gb_s: 2938.0446730802537
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Device Copy 1024 MB
+  dtype: float32
+  shape: '268435456'
+  throughput_tflops: 0.0
+  time_ms: 0.3320467402227223
+  memory_bandwidth_gb_s: 3011.6242048611716
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Device Copy 2048 MB
+  dtype: float32
+  shape: '536870912'
+  throughput_tflops: 0.0
+  time_ms: 0.6580691994167864
+  memory_bandwidth_gb_s: 3039.194057057372
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Host-to-Device (PCIe) 512 MB
+  dtype: float32
+  shape: '134217728'
+  throughput_tflops: 0.0
+  time_ms: 14.750278090359643
+  memory_bandwidth_gb_s: 33.89766599226259
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Host-to-Device (PCIe) 1024 MB
+  dtype: float32
+  shape: '268435456'
+  throughput_tflops: 0.0
+  time_ms: 29.811899119522423
+  memory_bandwidth_gb_s: 33.543653022264074
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Host-to-Device (PCIe) 2048 MB
+  dtype: float32
+  shape: '536870912'
+  throughput_tflops: 0.0
+  time_ms: 59.53277577064
+  memory_bandwidth_gb_s: 33.59493949526787
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Host (PCIe) 512 MB
+  dtype: float32
+  shape: '134217728'
+  throughput_tflops: 0.0
+  time_ms: 19.575738690327853
+  memory_bandwidth_gb_s: 25.541820306737353
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Host (PCIe) 1024 MB
+  dtype: float32
+  shape: '268435456'
+  throughput_tflops: 0.0
+  time_ms: 39.05963119934313
+  memory_bandwidth_gb_s: 25.601880235285403
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: Memory
+  operation: Device-to-Host (PCIe) 2048 MB
+  dtype: float32
+  shape: '536870912'
+  throughput_tflops: 0.0
+  time_ms: 78.68330752011389
+  memory_bandwidth_gb_s: 25.418351910139748
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: DataParallel
+  operation: DDP Training 1024x1024x1024 on 4 GPUs
+  dtype: float16
+  shape: 1024x1024x1024
+  throughput_tflops: 16.471387751314523
+  time_ms: 0.3911298210732639
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: DataParallel
+  operation: DDP Training 4096x4096x4096 on 4 GPUs
+  dtype: float16
+  shape: 4096x4096x4096
+  throughput_tflops: 1048.987042122846
+  time_ms: 0.3930619196034968
+  memory_bandwidth_gb_s: 0.0
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: AllReduce
+  operation: All-Reduce 10 MB on 4 GPUs
+  dtype: float32
+  shape: '2621440'
+  throughput_tflops: 0.0
+  time_ms: 0.054545640014111996
+  memory_bandwidth_gb_s: 268.553774347687
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: AllReduce
+  operation: All-Reduce 100 MB on 4 GPUs
+  dtype: float32
+  shape: '26214400'
+  throughput_tflops: 0.0
+  time_ms: 0.31031196005642414
+  memory_bandwidth_gb_s: 472.0552020404392
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: AllReduce
+  operation: All-Reduce 500 MB on 4 GPUs
+  dtype: float32
+  shape: '131072000'
+  throughput_tflops: 0.0
+  time_ms: 1.43529693945311
+  memory_bandwidth_gb_s: 510.2929260610519
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: P2P
+  operation: P2P Transfer 10 MB (GPU 0 <-> GPU 1)
+  dtype: float32
+  shape: '2621440'
+  throughput_tflops: 0.0
+  time_ms: 0.09492933982983232
+  memory_bandwidth_gb_s: 205.74513669863475
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: P2P
+  operation: P2P Transfer 100 MB (GPU 0 <-> GPU 1)
+  dtype: float32
+  shape: '26214400'
+  throughput_tflops: 0.0
+  time_ms: 0.43193810037337244
+  memory_bandwidth_gb_s: 452.1770592387418
+- gpu_name: NVIDIA B200
+  gpu_memory_gb: 191.505498112
+  cuda_capability: '10.0'
+  test_name: P2P
+  operation: P2P Transfer 500 MB (GPU 0 <-> GPU 1)
+  dtype: float32
+  shape: '131072000'
+  throughput_tflops: 0.0
+  time_ms: 1.6313512902706861
+  memory_bandwidth_gb_s: 598.6218332153103
