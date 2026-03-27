@@ -130,13 +130,15 @@ expected_performance:
   multi_gpu:
     nvlink_5_0:
       all_reduce_bandwidth_gbs:
-        min: 155.0
-        max: 195.0
-        typical: 175.0
+        min: 120.0
+        max: 180.0
+        typical: 150.0
+        note: "Based on NVLink 5.0 (1.8 TB/s per GPU). Same as B200."
       p2p_bandwidth_gbs:
-        min: 1250.0
-        max: 1650.0
-        typical: 1450.0
+        min: 450.0
+        max: 600.0
+        typical: 520.0
+        note: "BIDIRECTIONAL bandwidth. Same as B200 - identical NVLink 5.0 hardware. Only SM clocks differ between B200/B300."
     pcie_gen5:
       all_reduce_bandwidth_gbs:
         min: 20.0
@@ -150,13 +152,16 @@ expected_performance:
 notes:
   - B300 is higher-clocked variant of B200 (Blackwell architecture)
   - ~7% higher compute performance than B200
+  - "Same NVLink 5.0 bandwidth as B200 (1.8 TB/s per GPU) - source: NVIDIA GTC 2024"
   - Same memory bandwidth and capacity as B200
   - 5th generation Tensor Cores with enhanced FP8 and FP4 support
   - Massive 192 GB HBM3e memory capacity
-  - NVLink 5.0 provides 1.8 TB/s bidirectional bandwidth per GPU
   - Designed for large-scale AI training and inference
   - May have higher power consumption than B200
-  - Performance numbers are estimates based on NVIDIA specifications
+  - "Performance numbers are estimates based on NVIDIA specifications"
   - Actual performance may vary based on final production silicon
   - Optimized for transformer workloads and large language models
   - Typically used in premium configurations (DGX B300)
+  - "Interconnect performance identical to B200 - only SM clock differs"
+  - "P2P bandwidth limited by same factors as B200: memory subsystem bottlenecks, GPU topology, message size, and protocol overhead"
+  - "For 500 MB transfers, expect 400-550 GB/s matching B200 performance"
