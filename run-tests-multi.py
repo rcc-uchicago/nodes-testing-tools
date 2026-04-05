@@ -20,11 +20,10 @@ try:
 except ImportError:
     from yaml import SafeLoader as Loader
 
-'''
-    Execute the pipeline (aka task) in the configuration file
-'''
 def execute(config):
-
+    '''
+    Execute the pipeline (aka task) in the configuration file
+    '''
     # need to load the modules in the same command to be executed
     # otherwise the modules are only loaded in the subprocess that is created
     cmd_str = ""
@@ -124,7 +123,7 @@ def execute(config):
             if output_results is not None:
                 status['output_results'] = output_results['output']
         else:
-            msg = f"The run did not completed successfully. Rerun {cmd_str} to troubleshoot."
+            msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot."
             logging.error(msg)
 
         return status
@@ -142,16 +141,18 @@ def execute(config):
     }
     return status
 
-'''
-    Check the output results with the expected values in the configuration file.
-'''
 def check_output(output, config):
+    '''
+    Check the output results with the expected values in the configuration file.
+    '''
     passed = True
     failed_quantities = []
     for quantity in config['expected']:
         if quantity not in output['output_results']:
             logging.info(f"{quantity} is missing in the output")
             logging.info("Failed")
+            passed = False
+            failed_quantities.append(quantity)
             break
         
         expected_value = config['expected'][quantity]['value']
