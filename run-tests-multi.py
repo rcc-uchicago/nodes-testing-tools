@@ -1,11 +1,12 @@
 
 # Contact: ndtrung@uchicago.edu
 # usage: on a compute node, activate the env, then run the script with a YAML file
+#   each YAML file can have multiple tasks to run multiple tests
 #
 #   module load python/miniforge-25.3.0
 #   source /project/rcc/shared/nodes-testing/testing-env/bin/activate
 #   ulimit -l unlimited
-#   python3 run-tests.py --config-file lammps.yaml
+#   python3 run-tests-multi.py --config-file lscpu-multi.yaml
 
 from argparse import ArgumentParser
 from datetime import datetime
@@ -123,7 +124,7 @@ def execute(config):
             if output_results is not None:
                 status['output_results'] = output_results['output']
         else:
-            msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot."
+            msg = f"The run did not completed successfully. Rerun {cmd_str} to troubleshoot."
             logging.error(msg)
 
         return status
@@ -204,28 +205,29 @@ if __name__ == "__main__":
         handlers=handlers
     )
 
-
     if len(args.config_file) > 0:
         configFileName = args.config_file
     
     # read in the configuration of the tests
     with open(configFileName, 'r') as f:
-        config = yaml.load(f, Loader=Loader)
+        tasks = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
         logging.info(f"Using the configuration file:\n  {absolute_path}")
         f.close()
 
-    # Execute the pipeline in the configuration file
-    status = execute(config)
+    for task in tasks:
+        logging.info(f"Task: {task['task']}")
+        # Execute the task pipeline in the configuration file
+        output = execute(task)
 
-    # check the output results with the expected values in the configuration file
-    results = check_output(status, config)
+        # check the output results with the expected values in the configuration file
+        results = check_output(output, task)
 
-    if results['passed'] == True:
-        logging.info(f"PASSED")
-    else:
-        logging.info(f"FAILED for the following output: {results['failed_quantities']}")
-        
+        logging.info(f"Results:\n  {results['passed']}")
+        if not results['passed']:
+            logging.info(f"Failed quantities:\n  {results['failed_quantities']}")
+
+    
 
 
 
