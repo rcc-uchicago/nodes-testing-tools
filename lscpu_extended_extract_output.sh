@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# extract the output of the lscpu command to get the values (Cores and Thread(s) per core)
+# extract the output of the lscpu extended command to check if the CPUs are hyperthreading enabled
 # generate a YAML file to be read in by run-tests.py and
 # compared with the expected values in the configuration file
 
