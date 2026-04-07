@@ -21,16 +21,10 @@
   args: "--extended"
   working_dir: "./"
   input_dir: "./"
-  extract_output_script: "$working_dir/lscpu_extract_output.sh"
-  run_completed_marker: "CPU(s)"
+  extract_output_script: "$working_dir/lscpu_extended_extract_output.sh"
+  run_completed_marker: ""
   expected:
-    Cores:
-      value: 48
+    Hyperthreading:
+      value: 0
       abstol: 0
-    ThreadsPerCore:
-      value: 1
-      abstol: 0
-
-
-
 

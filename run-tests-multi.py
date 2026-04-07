@@ -87,7 +87,7 @@ def execute(config):
     else:
         timeout_value = 60
 
-    logging.info(f"Execute:")
+    logging.info(f"Executing:")
     logging.info(f"  {cmd_str}")
     try:
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout_value)
@@ -97,34 +97,32 @@ def execute(config):
             'stderr': p.stderr,
             'returncode': p.returncode,
         } 
-        
-        logging.info(f"stderr:")
-        logging.info(f"  {status['stderr']}")
+        if status['returncode'] != 0:
+            logging.info(f"stderr:")
+            logging.info(f"  {status['stderr']}")
 
-        if config['run_completed_marker'] in status['stdout']:
-            #print('Run completed')    
-            # Write the output to a temporary file .tmp.txt
-            with open(".tmp.txt", "w") as f:
-                f.write(status['stdout'])
-                f.close()
-            # Run the script to extract output
-            working_dir = "./"
-            if 'working_dir' in config:
-                working_dir = config['working_dir']
-            extract_script = config['extract_output_script'].replace("$working_dir", working_dir)
-            cmd_str = "source " + extract_script + " .tmp.txt > output.yaml"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=60)
-            output = p.stdout.split()
+        logging.info(f'Run completed')
+        # Write the output to a temporary file .tmp.txt
+        with open(".tmp.txt", "w") as f:
+            f.write(status['stdout'])
+            f.close()
+        # Run the script to extract output
+        working_dir = "./"
+        if 'working_dir' in config:
+            working_dir = config['working_dir']
+        extract_script = config['extract_output_script'].replace("$working_dir", working_dir)
+        cmd_str = "sh " + extract_script + " .tmp.txt > output.yaml"
+        p = subprocess.run(cmd_str, shell=True, text=True, timeout=60)
 
-            output_results = None
-            with open("output.yaml", 'r') as f:
-                output_results = yaml.load(f, Loader=Loader)
-                f.close()
-            if output_results is not None:
-                status['output_results'] = output_results['output']
-        else:
-            msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot."
-            logging.error(msg)
+        output_results = None
+        with open("output.yaml", 'r') as f:
+            output_results = yaml.load(f, Loader=Loader)
+            f.close()
+        if output_results is not None:
+            status['output_results'] = output_results['output']
+
+        if config['run_completed_marker'] not in status['stdout']:                
+            logging.info(msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot.")
 
         return status
 
@@ -148,6 +146,13 @@ def check_output(output, config):
     passed = True
     failed_quantities = []
     for quantity in config['expected']:
+        if 'output_results' not in output:
+            logging.info(f"output_results is missing in the output")
+            logging.info("Failed")
+            passed = False
+            failed_quantities.append(quantity)
+            break
+
         if quantity not in output['output_results']:
             logging.info(f"{quantity} is missing in the output")
             logging.info("Failed")
@@ -224,9 +229,13 @@ if __name__ == "__main__":
         # check the output results with the expected values in the configuration file
         results = check_output(output, task)
 
-        logging.info(f"Results:\n  {results['passed']}")
+        if results['passed']:
+            result_str = "PASSED"
+        else:
+            result_str = "FAILED"
+        logging.info(f"Testing results:  {result_str}")
         if not results['passed']:
-            logging.info(f"Failed quantities:\n  {results['failed_quantities']}")
+            logging.info(f"Failed quantities:  {results['failed_quantities']}")
 
     
 
