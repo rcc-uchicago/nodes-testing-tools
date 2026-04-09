@@ -20,7 +20,7 @@ try:
 except ImportError:
     from yaml import SafeLoader as Loader
 
-def execute(config):
+def execute(config, verbose=False):
     '''
     Execute the pipeline (aka task) in the configuration file
     '''
@@ -76,10 +76,10 @@ def execute(config):
         cmd_str += appbin + " " 
         
         if 'args' in config:
-                args = config['args']
-                args = args.replace("$working_dir", config['working_dir'])
-                args = args.replace("$input_dir", config['input_dir'])
-                cmd_str += args
+            args = config['args']
+            args = args.replace("$working_dir", config['working_dir'])
+            args = args.replace("$input_dir", config['input_dir'])
+            cmd_str += args
 
     # multiple runs may need larger timeout value
     if 'timeout_value' in config:
@@ -97,7 +97,7 @@ def execute(config):
             'stderr': p.stderr,
             'returncode': p.returncode,
         } 
-        if status['returncode'] != 0:
+        if verbose:
             logging.info(f"stderr:")
             logging.info(f"  {status['stderr']}")
 
@@ -197,11 +197,13 @@ if __name__ == "__main__":
     parser.add_argument('--log-level', type=str, dest="log_level", default='INFO',
                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                        help='Logging level (default: INFO)')
+    parser.add_argument("--verbose", action="store_true", default=False, help="Enable verbose logging")
     args = parser.parse_args()
     
     # Configure logging based on arguments
     handlers = [logging.StreamHandler()]  # Always log to console
-    
+    verbose = args.verbose
+
     if args.log_file:
         handlers.append(logging.FileHandler(args.log_file))
     
@@ -224,7 +226,7 @@ if __name__ == "__main__":
     for task in tasks:
         logging.info(f"Task: {task['task']}")
         # Execute the task pipeline in the configuration file
-        output = execute(task)
+        output = execute(task, verbose=verbose)
 
         # check the output results with the expected values in the configuration file
         results = check_output(output, task)
