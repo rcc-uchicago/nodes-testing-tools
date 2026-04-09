@@ -1,6 +1,10 @@
-
-# Contact: ndtrung@uchicago.edu
-# usage: on a compute node, activate the env, then run the script with a YAML file
+# This Python script is part of the nodes testing tools.
+# Contact: Trung Nguyen  (@ndtrung81)
+#          Akhil Francis (@Akhil-Francis)
+#          Bailey Howell (@bkhowell)
+#
+# Usage: on a compute node, activate the env, then run the script with a YAML file
+#   each YAML file can have multiple tasks to run multiple tests
 #
 #   module load python/miniforge-25.3.0
 #   source /project/rcc/shared/nodes-testing/testing-env/bin/activate
@@ -19,7 +23,7 @@ try:
 except ImportError:
     from yaml import SafeLoader as Loader
 
-def execute(config):
+def execute(config, verbose=False):
     '''
     Execute the pipeline (aka task) in the configuration file
     '''
@@ -75,10 +79,10 @@ def execute(config):
         cmd_str += appbin + " " 
         
         if 'args' in config:
-                args = config['args']
-                args = args.replace("$working_dir", config['working_dir'])
-                args = args.replace("$input_dir", config['input_dir'])
-                cmd_str += args
+            args = config['args']
+            args = args.replace("$working_dir", config['working_dir'])
+            args = args.replace("$input_dir", config['input_dir'])
+            cmd_str += args
 
     # multiple runs may need larger timeout value
     if 'timeout_value' in config:
@@ -86,7 +90,7 @@ def execute(config):
     else:
         timeout_value = 60
 
-    logging.info(f"Execute:")
+    logging.info(f"Executing:")
     logging.info(f"  {cmd_str}")
     try:
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout_value)
@@ -96,34 +100,32 @@ def execute(config):
             'stderr': p.stderr,
             'returncode': p.returncode,
         } 
-        
-        logging.info(f"stderr:")
-        logging.info(f"  {status['stderr']}")
+        if verbose:
+            logging.info(f"stderr:")
+            logging.info(f"  {status['stderr']}")
 
-        if config['run_completed_marker'] in status['stdout']:
-            #print('Run completed')    
-            # Write the output to a temporary file .tmp.txt
-            with open(".tmp.txt", "w") as f:
-                f.write(status['stdout'])
-                f.close()
-            # Run the script to extract output
-            working_dir = "./"
-            if 'working_dir' in config:
-                working_dir = config['working_dir']
-            extract_script = config['extract_output_script'].replace("$working_dir", working_dir)
-            cmd_str = "source " + extract_script + " .tmp.txt > output.yaml"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=60)
-            output = p.stdout.split()
+        logging.info(f'Run completed')
+        # Write the output to a temporary file .tmp.txt
+        with open(".tmp.txt", "w") as f:
+            f.write(status['stdout'])
+            f.close()
+        # Run the script to extract output
+        working_dir = "./"
+        if 'working_dir' in config:
+            working_dir = config['working_dir']
+        extract_script = config['extract_output_script'].replace("$working_dir", working_dir)
+        cmd_str = "sh " + extract_script + " .tmp.txt > output.yaml"
+        p = subprocess.run(cmd_str, shell=True, text=True, timeout=60)
 
-            output_results = None
-            with open("output.yaml", 'r') as f:
-                output_results = yaml.load(f, Loader=Loader)
-                f.close()
-            if output_results is not None:
-                status['output_results'] = output_results['output']
-        else:
-            msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot."
-            logging.error(msg)
+        output_results = None
+        with open("output.yaml", 'r') as f:
+            output_results = yaml.load(f, Loader=Loader)
+            f.close()
+        if output_results is not None:
+            status['output_results'] = output_results['output']
+
+        if config['run_completed_marker'] not in status['stdout']:                
+            logging.info(msg = f"The run might not have completed successfully. Rerun {cmd_str} to troubleshoot.")
 
         return status
 
@@ -147,6 +149,13 @@ def check_output(output, config):
     passed = True
     failed_quantities = []
     for quantity in config['expected']:
+        if 'output_results' not in output:
+            logging.info(f"output_results is missing in the output")
+            logging.info("Failed")
+            passed = False
+            failed_quantities.append(quantity)
+            break
+
         if quantity not in output['output_results']:
             logging.info(f"{quantity} is missing in the output")
             logging.info("Failed")
@@ -191,8 +200,10 @@ if __name__ == "__main__":
     parser.add_argument('--log-level', type=str, dest="log_level", default='INFO',
                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
                        help='Logging level (default: INFO)')
+    parser.add_argument("--verbose", action="store_true", default=False, help="Enable verbose logging")
     args = parser.parse_args()
-    
+    verbose = args.verbose
+
     # Configure logging based on arguments
     handlers = [logging.StreamHandler()]  # Always log to console
     
@@ -205,28 +216,33 @@ if __name__ == "__main__":
         handlers=handlers
     )
 
-
     if len(args.config_file) > 0:
         configFileName = args.config_file
     
     # read in the configuration of the tests
     with open(configFileName, 'r') as f:
-        config = yaml.load(f, Loader=Loader)
+        tasks = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
         logging.info(f"Using the configuration file:\n  {absolute_path}")
         f.close()
 
-    # Execute the pipeline in the configuration file
-    status = execute(config)
+    for task in tasks:
+        logging.info(f"Task: {task['task']}")
+        # Execute the task pipeline in the configuration file
+        output = execute(task, verbose=verbose)
 
-    # check the output results with the expected values in the configuration file
-    results = check_output(status, config)
+        # check the output results with the expected values in the configuration file
+        results = check_output(output, task)
 
-    if results['passed'] == True:
-        logging.info(f"PASSED")
-    else:
-        logging.info(f"FAILED for the following output: {results['failed_quantities']}")
-        
+        if results['passed']:
+            result_str = "PASSED"
+        else:
+            result_str = "FAILED"
+        logging.info(f"Testing results:  {result_str}")
+        if not results['passed']:
+            logging.info(f"Failed quantities:  {results['failed_quantities']}")
+
+    
 
 
 

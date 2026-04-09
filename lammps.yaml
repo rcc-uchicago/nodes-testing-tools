@@ -1,4 +1,5 @@
 ---
+- task: "Running LAMMPS"
   app_binary: "lmp"
   modules_needed: "lammps/29Aug2024"
   nprocs: "4"

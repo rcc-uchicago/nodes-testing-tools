@@ -1,4 +1,5 @@
 ---
+- task: "Running HPCG"
   app_binary: "xhpcg"
   modules_needed: ""
   nprocs: "16"

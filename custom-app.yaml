@@ -1,4 +1,5 @@
 ---
+- task: "Running a Python script to test numpy"
   app_binary: "python3"
   modules_needed: "python/miniforge-25.3.0"
   nprocs: ""

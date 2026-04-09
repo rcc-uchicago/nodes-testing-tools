@@ -1,6 +1,9 @@
-
-# Contact: ndtrung@uchicago.edu
-# usage: on a compute node, activate the env, then run the script with a YAML file
+# This Python script is part of the nodes testing tools.
+# Contact: Trung Nguyen  (@ndtrung81)
+#          Akhil Francis (@Akhil-Francis)
+#          Bailey Howell (@bkhowell)
+#
+# Usage: on a compute node, activate the env, then run the script with a YAML file
 #   each YAML file can have multiple tasks to run multiple tests
 #
 #   module load python/miniforge-25.3.0
@@ -199,11 +202,11 @@ if __name__ == "__main__":
                        help='Logging level (default: INFO)')
     parser.add_argument("--verbose", action="store_true", default=False, help="Enable verbose logging")
     args = parser.parse_args()
-    
-    # Configure logging based on arguments
-    handlers = [logging.StreamHandler()]  # Always log to console
     verbose = args.verbose
 
+    # Configure logging based on arguments
+    handlers = [logging.StreamHandler()]  # Always log to console
+    
     if args.log_file:
         handlers.append(logging.FileHandler(args.log_file))
     
