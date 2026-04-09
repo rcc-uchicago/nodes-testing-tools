@@ -6,7 +6,7 @@
 
 file=$1
 # check if hyperthreading is enabled
-ht=`awk 'BEGIN{ht = 0;} {if ($1 != $4) ht = 1;} END{ printf("%d\n", ht); }' $file`
+ht=`awk 'BEGIN{ht = 0;} {if (NR > 1 && $1 != $4) ht = 1;} END{ printf("%d\n", ht); }' $file`
 
 echo "---"
 echo "  output:"
