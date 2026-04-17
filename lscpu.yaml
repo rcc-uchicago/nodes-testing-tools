@@ -1,5 +1,6 @@
 ---
-- task: "Running lscpu"
+- task: "lscpu"
+  description: "Running lscpu"
   app_binary: "lscpu"
   modules_needed: ""
   args: ""

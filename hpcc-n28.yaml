@@ -1,5 +1,6 @@
 ---
-- task: "Running HPCC- medium-sized problem"
+- task: "hpcc-medium"
+  description: "Running HPCC- medium-sized problem"
   app_binary: "./hpcc-intelmpi"
   modules_needed: "intelmpi/2021.5+intel-2022.0 mkl/2023.1"
   preprocess: "cd $input_dir"
@@ -33,7 +34,9 @@
     MPIFFT:
       value:  1.733420e+01
       reltol: 10.0
-- task: "Running HPCC- large-sized problem"
+
+- task: "hpcc-large"
+  description: "Running HPCC- large-sized problem"
   skip: True
   app_binary: "./hpcc-intelmpi"
   modules_needed: "intelmpi/2021.5+intel-2022.0 mkl/2023.1"

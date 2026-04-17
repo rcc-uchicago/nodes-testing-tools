@@ -1,5 +1,6 @@
 ---
-- task: "Running LAMMPS without GPU acceleration"
+- task: "lammps-cpu"
+  description: "Running LAMMPS without GPU acceleration"
   app_binary: "lmp"
   modules_needed: "lammps/29Aug2024"
   nprocs: "4"
@@ -18,7 +19,8 @@
       value: 208
       reltol: 10.0
 
-- task: "Running LAMMPS with GPU acceleration"
+- task: "lammps-gpu"
+  description: "Running LAMMPS with GPU acceleration"
   app_binary: "lmp"
   modules_needed: "lammps/29Aug2024"
   nprocs: "4"
