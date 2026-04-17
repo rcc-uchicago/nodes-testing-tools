@@ -165,22 +165,46 @@ def check_output(output, config):
         
         expected_value = config['expected'][quantity]['value']
         actual_value = output['output_results'][quantity]['value']
-        absdiff = np.abs(np.float64(expected_value) - np.float64(actual_value))
 
-        if 'abstol' in config['expected'][quantity]:
-            abstol = np.float64(config['expected'][quantity]['abstol'])
-            logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} absdiff = {absdiff:.5f} abstol = {abstol}")
-            if absdiff > abstol:
+        if isinstance(expected_value, str):
+            logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value}")
+            if not isinstance(actual_value, str):
+                logging.info("Failed")
+                passed = False
+                failed_quantities.append(quantity)    
+            else:
+                actual_value = actual_value.strip()
+                if expected_value != actual_value:
+                    logging.info("Failed")
+                    passed = False
+                    failed_quantities.append(quantity)
+            
+        else:
+            # numeric values, check if the actual value is a number
+            if not isinstance(actual_value, (int, float)):
+                logging.info(f"{quantity} is not a number in the actual output")
+                logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value}")
+                logging.info("Failed")
                 passed = False
                 failed_quantities.append(quantity)
+                continue
 
-        if 'reltol' in config['expected'][quantity]:
-            reltol = np.float64(config['expected'][quantity]['reltol'])
-            reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
-            logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} reldiff = {reldiff:.3f} reltol = {reltol}")
-            if reldiff > reltol:
-                passed = False
-                failed_quantities.append(quantity)
+            absdiff = np.abs(np.float64(expected_value) - np.float64(actual_value))
+
+            if 'abstol' in config['expected'][quantity]:
+                abstol = np.float64(config['expected'][quantity]['abstol'])
+                logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} absdiff = {absdiff:.5f} abstol = {abstol}")
+                if absdiff > abstol:
+                    passed = False
+                    failed_quantities.append(quantity)
+
+            if 'reltol' in config['expected'][quantity]:
+                reltol = np.float64(config['expected'][quantity]['reltol'])
+                reldiff = absdiff / np.abs(np.float64(expected_value)) * 100.0
+                logging.info(f"{quantity}: Actual = {actual_value} Expected = {expected_value} reldiff = {reldiff:.3f} reltol = {reltol}")
+                if reldiff > reltol:
+                    passed = False
+                    failed_quantities.append(quantity)
 
     results = {
         'passed': passed,
@@ -228,6 +252,12 @@ if __name__ == "__main__":
 
     for task in tasks:
         logging.info(f"Task: {task['task']}")
+
+        skip = task.get('skip', False)
+        if skip:
+            logging.info(f"skip: True in {configFileName}")
+            continue
+
         # Execute the task pipeline in the configuration file
         output = execute(task, verbose=verbose)
 

@@ -252,6 +252,12 @@ if __name__ == "__main__":
 
     for task in tasks:
         logging.info(f"Task: {task['task']}")
+
+        skip = task.get('skip', False)
+        if skip:
+            logging.info(f"skip: True in {configFileName}")
+            continue
+
         # Execute the task pipeline in the configuration file
         output = execute(task, verbose=verbose)
 
