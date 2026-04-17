@@ -1,4 +1,6 @@
 ---
+- task: "lscpu"
+  description: "Running lscpu"
   app_binary: "lscpu"
   modules_needed: ""
   args: ""
@@ -11,7 +13,4 @@
     ThreadsPerCore:
       value: 1
       abstol: 0
-
-
-
 
