@@ -324,6 +324,7 @@ class JobScriptConfigurationPage(QWizardPage):
         run_mpgadget = self.field("run_mpgadget")
         run_nvidiasmi = self.field("run_nvidiasmi")
         nodelist = self.field("nodelist")
+        reservation = self.field("reservation")
 
         if run_lscpu == False and run_hpcc == False and run_hpcg == False and run_lammps == False and run_custom == False and run_mpgadget == False and run_nvidiasmi == False:
             QMessageBox.warning(
@@ -336,7 +337,8 @@ class JobScriptConfigurationPage(QWizardPage):
         content += f"#SBATCH --account=rcc-staff\n"
         content += f"#SBATCH --partition=test\n"
         content += f"#SBATCH --nodelist={nodelist}\n"
-        content += f"#SBATCH --reservation=TestCPP\n"
+        if reservation != "":
+            content += f"#SBATCH --reservation={reservation}\n"
         content += f"#SBATCH --mem=0\n"
         content += f"#SBATCH --time=00:30:00\n"
         content += f"#SBATCH --exclusive\n"
