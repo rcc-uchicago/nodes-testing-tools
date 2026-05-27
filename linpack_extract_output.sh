@@ -64,6 +64,7 @@ yaml=$(cat <<EOF
   output:
     HPL:
       value: ${HPL_VAL}
+       unit: ${HPL_UNIT}
 EOF
 )
 
