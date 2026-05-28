@@ -345,7 +345,7 @@ class JobScriptConfigurationPage(QWizardPage):
         content += f"#SBATCH --account=rcc-staff\n"
         content += f"#SBATCH --partition=test\n"
         content += f"#SBATCH --nodelist={nodelist}\n"
-        if reservation != "":
+        if reservation:
             content += f"#SBATCH --reservation={reservation}\n"
         content += f"#SBATCH --mem=0\n"
         content += f"#SBATCH --time=00:30:00\n"
