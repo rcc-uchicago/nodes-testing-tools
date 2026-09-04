@@ -73,7 +73,7 @@ echo "Number of GPUs per node requested: $num_gpus" >> $CWD/$OUTPUT
 if grep -q "AMD" $OUTPUT; then
   echo "$nodename has AMD CPUs" >> $OUTPUT
    module load mpich/3.4.3+gcc-10.2.0 cuda/12.2
-   export PATH=/project/rcc/shared/nodes-testing/lammps/build:$PATH
+   export LMP_BINARY=/project/rcc/shared/nodes-testing/lammps/build/lmp
 else
   echo "$nodename has Intel CPUs" >> $OUTPUT
   module load lammps/29Aug2024
@@ -87,7 +87,7 @@ r=8                 # 16 for 256 GB mem nodes, 24 for 1TB mem nodes, 35 for bigg
 # t controls how long the simulation takes
 t=100
 
-mpirun -np $n -bind-to core -map-by numa lmp_gpu -in $DATA_PATH/in.lj -v x $r -v y $r -v z $r -v t $t -sf gpu -pk gpu $num_gpus >> $CWD/$OUTPUT
+mpirun -np $n -bind-to core -map-by numa $LMP_BINARY -in $DATA_PATH/in.lj -v x $r -v y $r -v z $r -v t $t -sf gpu -pk gpu $num_gpus >> $CWD/$OUTPUT
 
 if [ -e "$CWD/$OUTPUT" ]
 then

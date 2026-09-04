@@ -19,6 +19,19 @@ then
   reservation=$2
 fi
 
+ACCOUNT="rcc-staff"
+if [ $# -ge 3 ]
+then
+  ACCOUNT=$3
+fi
+
+# put test to ensure it will fail if partition is not specified
+PARTITION="test"
+if [ $# -ge 4 ]
+then
+  PARTITION=$4
+fi
+
 reservation_exist=`scontrol show res $reservation | grep ReservationName | sed 's/ReservationName=//g'`
 echo "Reservation: $reservation_exist"
 
@@ -69,6 +82,8 @@ then
 
     cp $queue_template $queue_file
     sed -i "s/--reservation=Test_CPP/--reservation=$reservation/g" $queue_file
+    sed -i "s/--account=rcc-staff/--account=$ACCOUNT/g" $queue_file
+    sed -i "s/--partition=test/--partition=$PARTITION/g" $queue_file
 
     echo "Submitting job script $queue_file.."
     echo "  sbatch --nodelist=$nodelist --ntasks-per-node=$max_ppn $queue_file $output"

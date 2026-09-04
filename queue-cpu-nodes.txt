@@ -3,7 +3,7 @@
 # submit:
 #   sbatch --nodelist=midway3-0451 queue-cpu-nodes.txt output-midway3-0451.txt
 
-#SBATCH --job-name=gpu-test
+#SBATCH --job-name=cpp-test
 #SBATCH --account=rcc-staff
 #SBATCH --partition=test
 #SBATCH --reservation=Test_CPP   # System team would put the node under this reservation for testing purposes, or CS can create it
@@ -67,7 +67,7 @@ awk -v cores="$cores" -v start="$cpu_start" 'BEGIN{hyperthreading=0;}{
 if grep -q "AMD" $OUTPUT; then
   echo "$nodename has AMD CPUs" >> $OUTPUT
    module load mpich/3.4.3+gcc-10.2.0 cuda/12.2
-   export PATH=/project/rcc/shared/nodes-testing/lammps/build:$PATH
+   export LMP_BINARY=/project/rcc/shared/nodes-testing/lammps/build-cpu/lmp
 else
   echo "$nodename has Intel CPUs" >> $OUTPUT
   module load lammps/29Aug2024
@@ -81,7 +81,7 @@ r=8                 # 16 for 256 GB mem nodes, 24 for 1TB mem nodes, 35 for bigg
 # t controls how long the simulation takes
 t=100
 
-mpirun -np $n -bind-to core -map-by numa lmp -in $DATA_PATH/in.lj -v x $r -v y $r -v z $r -v t $t >> $CWD/$OUTPUT
+mpirun -np $n -bind-to core -map-by numa $LMP_BINARY -in in.lj -v x $r -v y $r -v z $r -v t $t >> $CWD/$OUTPUT
 
 if [ -e "$CWD/$OUTPUT" ]
 then
@@ -94,7 +94,7 @@ then
     echo "FAILED" >> $CWD/$OUTPUT
   fi
 else
-  echo "$OUTPUT does not exist." >> $CWD/$OUTPUT
+  echo "$CWD/$OUTPUT does not exist." >> $CWD/$OUTPUT
 fi
 
 echo "Done. Finished ALL tests." >> $CWD/$OUTPUT
